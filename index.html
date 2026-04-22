@@ -1,642 +1,1294 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MIRAGE · 插画风格化工坊</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIRAGE · 插画风格化工坊 C</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --paper:#f0ebe0;--paper2:#e8e0d0;--ink:#2a2118;--rust:#c4501a;
-  --teal:#2d7d6e;--ochre:#c8922a;--sage:#5a7a5c;--muted:#8a7a68;--border:#c8b89a;
+  --paper: #f0ebe0;
+  --paper2: #e8e0d0;
+  --ink: #2a2118;
+  --rust: #c4501a;
+  --teal: #2d7d6e;
+  --ochre: #c8922a;
+  --sage: #5a7a5c;
+  --muted: #8a7a68;
+  --border: #c8b89a;
+  --shadow: rgba(42,33,24,0.15);
+  --accent: #c4501a;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--paper);color:var(--ink);font-family:'Noto Sans SC',sans-serif;min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;}
-
-/* ── Layout ── */
-.root{display:flex;flex-direction:column;height:100vh;}
-.body{display:flex;flex:1;overflow:hidden;}
-
-/* Header */
-header{background:var(--ink);padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;position:relative;flex-shrink:0;}
-header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--rust) 0,var(--rust) 8px,transparent 8px,transparent 12px);}
-.logo{font-family:'Libre Baskerville',serif;font-style:italic;font-size:1.4rem;color:var(--paper);letter-spacing:.06em;}
-.logo-tag{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--ochre);letter-spacing:.18em;border:1px solid var(--ochre);padding:2px 6px;margin-left:10px;}
-.header-r{font-family:'Space Mono',monospace;font-size:.54rem;color:#5a5040;letter-spacing:.1em;}
-
-/* ── Sidebar ── */
-.sidebar{width:270px;flex-shrink:0;background:var(--paper2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.side-tabs{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);}
-.side-tab{flex:1;padding:9px 4px;font-family:'Space Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-align:center;cursor:pointer;color:var(--muted);background:transparent;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
-.side-tab.active{color:var(--rust);border-bottom-color:var(--rust);}
-.side-tab:hover:not(.active){color:var(--ink);}
-.side-panel{display:none;flex-direction:column;gap:13px;padding:13px 13px 20px;overflow-y:auto;flex:1;}
-.side-panel.active{display:flex;}
-
-/* ── Canvas area ── */
-.canvas-area{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;align-items:center;gap:16px;
-  background:repeating-linear-gradient(0deg,transparent,transparent 27px,rgba(42,33,24,.035) 27px,rgba(42,33,24,.035) 28px),
-             repeating-linear-gradient(90deg,transparent,transparent 27px,rgba(42,33,24,.035) 27px,rgba(42,33,24,.035) 28px);}
-
-/* ── Shared ── */
-.sh{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px;margin-bottom:7px;}
-.sh::before{content:'';width:3px;height:10px;background:var(--rust);flex-shrink:0;}
-
-/* Filter category tabs */
-.fcat-bar{display:flex;border:1px solid var(--border);overflow:hidden;margin-bottom:7px;}
-.fcat-btn{flex:1;padding:6px 3px;font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.07em;text-align:center;cursor:pointer;color:var(--muted);background:var(--paper);border:none;border-right:1px solid var(--border);transition:all .12s;}
-.fcat-btn:last-child{border-right:none;}
-.fcat-btn.active{background:var(--ink);color:var(--paper);}
-
-/* Filter cards */
-.filter-grid{display:flex;flex-direction:column;gap:3px;}
-.filter-card{display:flex;align-items:center;gap:7px;padding:6px 9px;border:1px solid var(--border);background:var(--paper);cursor:pointer;transition:all .14s;position:relative;overflow:hidden;}
-.filter-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rust);transform:scaleY(0);transition:transform .14s;}
-.filter-card:hover{background:#ede6d8;}
-.filter-card.active{background:#ede6d8;border-color:var(--rust);}
-.filter-card.active::before{transform:scaleY(1);}
-.fc-icon{font-size:.9rem;flex-shrink:0;width:18px;text-align:center;}
-.fc-info{flex:1;min-width:0;}
-.fc-name{font-family:'Space Mono',monospace;font-size:.62rem;font-weight:700;letter-spacing:.04em;color:var(--ink);}
-.fc-desc{font-size:.56rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.fc-tag{font-family:'Space Mono',monospace;font-size:.46rem;padding:1px 4px;border:1px solid var(--border);color:var(--muted);letter-spacing:.05em;flex-shrink:0;}
-.fc-tag.tag-base{border-color:var(--rust);color:var(--rust);}
-
-/* Toggles */
-.tog-row{display:flex;border:1px solid var(--border);overflow:hidden;}
-.tog-btn{flex:1;padding:7px 3px;text-align:center;font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.05em;color:var(--muted);cursor:pointer;background:var(--paper);border:none;transition:all .13s;}
-.tog-btn+.tog-btn{border-left:1px solid var(--border);}
-.tog-btn.active{background:var(--ink);color:var(--paper);}
-.sc-btn{flex:1;padding:7px 3px;text-align:center;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.07em;color:var(--muted);cursor:pointer;background:var(--paper);border:none;transition:all .13s;}
-.sc-btn+.sc-btn{border-left:1px solid var(--border);}
-.sc-btn.active{background:var(--teal);color:var(--paper);}
-
-/* Params */
-.param-stack{display:flex;flex-direction:column;gap:9px;}
-.param{display:flex;flex-direction:column;gap:4px;}
-.param-hd{display:flex;justify-content:space-between;}
-.param-lbl{font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.07em;color:var(--muted);}
-.param-val{font-family:'Space Mono',monospace;font-size:.57rem;color:var(--rust);font-weight:700;}
-input[type=range]{-webkit-appearance:none;width:100%;height:2px;background:var(--border);outline:none;}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;background:var(--rust);border-radius:0;cursor:pointer;border:1px solid var(--ink);transition:transform .13s;}
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.4);}
-
-/* Btns */
-.btns{display:flex;flex-direction:column;gap:6px;margin-top:auto;padding-top:6px;}
-.btn{font-family:'Space Mono',monospace;font-size:.63rem;letter-spacing:.12em;padding:9px 12px;cursor:pointer;border:none;text-align:center;text-transform:uppercase;transition:all .13s;}
-.btn-ink{background:var(--ink);color:var(--paper);}
-.btn-ink:hover{background:#3d3020;transform:translateY(-1px);}
-.btn-outline{background:transparent;color:var(--ink);border:1px solid var(--ink);}
-.btn-outline:hover{background:var(--ink);color:var(--paper);}
-.btn-sm{background:var(--rust);color:var(--paper);border:none;padding:7px 10px;font-family:'Space Mono',monospace;font-size:.57rem;letter-spacing:.07em;cursor:pointer;flex-shrink:0;transition:background .13s;}
-.btn-sm:hover{background:#a8421a;}
-
-/* Drop zone */
-.dropzone{width:100%;max-width:700px;min-height:240px;border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:all .2s;background:rgba(240,235,224,.6);position:relative;}
-.dropzone:hover,.dropzone.over{border-color:var(--rust);background:rgba(196,80,26,.04);}
-.dropzone::before,.dropzone::after{content:'';position:absolute;width:16px;height:16px;border-color:var(--rust);border-style:solid;opacity:.5;}
-.dropzone::before{top:7px;left:7px;border-width:2px 0 0 2px;}
-.dropzone::after{bottom:7px;right:7px;border-width:0 2px 2px 0;}
-.dz-icon{font-size:2rem;opacity:.28;}
-.dz-text{font-size:.78rem;color:var(--muted);text-align:center;}
-.dz-text span{color:var(--rust);cursor:pointer;text-decoration:underline;}
-.dz-hint{font-size:.6rem;color:var(--border);font-family:'Space Mono',monospace;letter-spacing:.1em;}
-input[type=file]{display:none;}
-
-/* Results */
-.result-wrap{display:none;flex-direction:column;gap:12px;width:100%;max-width:960px;}
-.result-wrap.show{display:flex;}
-.compare-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.cv-panel{display:flex;flex-direction:column;gap:6px;}
-.cv-label{font-family:'Space Mono',monospace;font-size:.55rem;letter-spacing:.17em;color:var(--muted);display:flex;align-items:center;gap:5px;}
-.cv-label .pip{display:inline-block;width:7px;height:7px;border:1px solid currentColor;}
-.cv-box{border:1px solid var(--border);background:var(--ink);position:relative;overflow:hidden;line-height:0;}
-.cv-box canvas{display:block;width:100%;height:auto;max-height:440px;object-fit:contain;}
-.stamp{position:absolute;bottom:8px;right:8px;background:var(--ink);color:var(--paper);font-family:'Space Mono',monospace;font-size:.5rem;letter-spacing:.12em;padding:3px 7px;opacity:.85;}
-.progress-line{position:absolute;top:0;left:0;height:2px;background:var(--rust);width:0%;transition:width .22s;z-index:10;}
-.status-bar{font-family:'Space Mono',monospace;font-size:.57rem;color:var(--muted);letter-spacing:.09em;align-self:flex-start;display:flex;align-items:center;gap:14px;}
-.status-item{display:flex;align-items:center;gap:4px;}
-.status-dot{width:5px;height:5px;border-radius:50%;background:var(--sage);}
-.reupload-btn{font-family:'Space Mono',monospace;font-size:.53rem;letter-spacing:.07em;color:var(--rust);border:1px solid var(--rust);background:transparent;padding:2px 7px;cursor:pointer;transition:all .13s;}
-.reupload-btn:hover{background:var(--rust);color:var(--paper);}
-
-/* Presets */
-.saved-list{display:flex;flex-direction:column;gap:4px;}
-.saved-item{display:flex;align-items:center;gap:6px;padding:7px 8px;border:1px solid var(--border);background:var(--paper);cursor:pointer;transition:all .13s;}
-.saved-item:hover{background:#ede6d8;border-color:var(--rust);}
-.saved-item-name{flex:1;font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.saved-item-style{font-size:.52rem;color:var(--muted);font-family:'Space Mono',monospace;flex-shrink:0;}
-.saved-item-del{color:var(--muted);font-size:.75rem;cursor:pointer;padding:0 3px;transition:color .13s;flex-shrink:0;}
-.saved-item-del:hover{color:var(--rust);}
-.save-row{display:flex;gap:5px;}
-.save-input{flex:1;background:var(--paper);border:1px solid var(--border);padding:7px 8px;font-family:'Space Mono',monospace;font-size:.6rem;color:var(--ink);outline:none;min-width:0;transition:border-color .13s;}
-.save-input:focus{border-color:var(--rust);}
-.save-input::placeholder{color:var(--border);}
-.empty-hint{font-family:'Space Mono',monospace;font-size:.57rem;color:var(--border);letter-spacing:.07em;text-align:center;padding:12px 0;}
-
-/* Batch */
-.batch-dz{border:2px dashed var(--border);padding:11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--paper);}
-.batch-dz:hover,.batch-dz.over{border-color:var(--rust);background:rgba(196,80,26,.04);}
-.batch-dz-text{font-size:.68rem;color:var(--muted);}
-.batch-dz-text span{color:var(--rust);cursor:pointer;text-decoration:underline;}
-.batch-dz-hint{font-size:.54rem;color:var(--border);font-family:'Space Mono',monospace;margin-top:3px;letter-spacing:.06em;}
-.batch-queue{display:flex;flex-direction:column;gap:3px;max-height:185px;overflow-y:auto;}
-.batch-item{display:flex;align-items:center;gap:5px;padding:4px 6px;border:1px solid var(--border);background:var(--paper);}
-.batch-thumb{width:24px;height:24px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;}
-.batch-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Space Mono',monospace;font-size:.56rem;}
-.batch-status{font-family:'Space Mono',monospace;font-size:.52rem;flex-shrink:0;width:40px;text-align:right;}
-.batch-status.pending{color:var(--muted);}.batch-status.running{color:var(--ochre);}
-.batch-status.done{color:var(--sage);}.batch-status.error{color:var(--rust);}
-.batch-prog-wrap{height:2px;background:var(--border);overflow:hidden;}
-.batch-prog-bar{height:100%;background:var(--rust);width:0%;transition:width .2s;}
-
-::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.processing .cv-label{animation:blink 1.1s ease infinite;}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans SC', sans-serif;
+  min-height: 100vh;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+}
+header {
+  background: var(--ink);
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--rust) 0, var(--rust) 8px, transparent 8px, transparent 12px);
+}
+.logo-wrap { display: flex; align-items: baseline; gap: 12px; }
+.logo {
+  font-family: 'Libre Baskerville', serif;
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--paper);
+  letter-spacing: 0.06em;
+}
+.logo-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--ochre);
+  letter-spacing: 0.2em;
+  border: 1px solid var(--ochre);
+  padding: 2px 6px;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.header-right {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  color: #6a6050;
+  letter-spacing: 0.12em;
+  text-align: right;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: calc(100vh - 56px);
+}
+.sidebar {
+  background: var(--paper2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: calc(100vh - 56px);
+}
+.sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0; right: -1px; bottom: 0;
+  width: 3px;
+  background: repeating-linear-gradient(180deg, var(--border) 0, var(--border) 4px, transparent 4px, transparent 8px);
+  opacity: 0.5;
+}
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-align: center;
+  cursor: pointer;
+  color: var(--muted);
+  border: none;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab.active { color: var(--rust); border-bottom-color: var(--rust); }
+.tab:hover:not(.active) { color: var(--ink); }
+.tab-panels {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.tab-panel {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  overflow-y: auto;
+}
+.tab-panel.active { display: flex; }
+.sec-head {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  color: var(--muted);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.sec-head::before {
+  content: '';
+  width: 3px;
+  height: 12px;
+  background: var(--rust);
+}
+.preset-list { display: flex; flex-direction: column; gap: 6px; }
+.preset-subhead {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.56rem;
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 4px 0 6px;
+  opacity: 0.9;
+}
+.preset-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.preset-card::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--rust);
+  transform: scaleY(0);
+  transition: transform 0.18s;
+}
+.preset-card:hover { background: #ede6d8; }
+.preset-card.active { background: #ede6d8; border-color: var(--rust); }
+.preset-card.active::after { transform: scaleY(1); }
+.preset-icon { font-size: 1.2rem; flex-shrink: 0; }
+.preset-info { flex: 1; min-width: 0; }
+.preset-name {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.preset-desc {
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.outline-toggle,
+.smooth-toggle,
+.scale-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--paper);
+}
+.toggle-btn {
+  flex: 1;
+  padding: 8px 6px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  cursor: pointer;
+  background: var(--paper);
+  border: none;
+  transition: all 0.15s;
+}
+.toggle-btn + .toggle-btn { border-left: 1px solid var(--border); }
+.toggle-btn.active { background: var(--ink); color: var(--paper); }
+.param-stack { display: flex; flex-direction: column; gap: 12px; }
+.param { display: flex; flex-direction: column; gap: 5px; }
+.param-hd { display: flex; justify-content: space-between; }
+.param-lbl {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.param-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--rust);
+  font-weight: 700;
+}
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--rust);
+  border-radius: 0;
+  cursor: pointer;
+  transition: transform 0.15s;
+  border: 1px solid var(--ink);
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
+.btns { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  padding: 11px 16px;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.btn-ink { background: var(--ink); color: var(--paper); }
+.btn-ink:hover { background: #3d3020; transform: translateY(-1px); }
+.btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+.btn-outline:hover { background: var(--ink); color: var(--paper); }
+.canvas-area {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(42,33,24,0.04) 27px, rgba(42,33,24,0.04) 28px),
+    repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(42,33,24,0.04) 27px, rgba(42,33,24,0.04) 28px);
+}
+.dropzone {
+  width: 100%;
+  max-width: 680px;
+  min-height: 280px;
+  border: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(240,235,224,0.6);
+  position: relative;
+}
+.dropzone:hover, .dropzone.over {
+  border-color: var(--rust);
+  background: rgba(196,80,26,0.04);
+}
+.dropzone::before, .dropzone::after {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--rust);
+  border-style: solid;
+  opacity: 0.5;
+}
+.dropzone::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+.dropzone::after  { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+.dz-icon { font-size: 2.5rem; opacity: 0.3; }
+.dz-text { font-size: 0.82rem; color: var(--muted); text-align: center; }
+.dz-text span { color: var(--rust); cursor: pointer; text-decoration: underline; }
+.dz-hint { font-size: 0.65rem; color: var(--border); font-family: 'Space Mono', monospace; letter-spacing: 0.1em; }
+.result-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 1080px;
+}
+.result-wrap.show { display: flex; }
+.compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cv-panel { display: flex; flex-direction: column; gap: 8px; }
+.cv-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cv-label .pip { display: inline-block; width: 8px; height: 8px; border: 1px solid currentColor; }
+.cv-box {
+  border: 1px solid var(--border);
+  background: var(--ink);
+  position: relative;
+  overflow: hidden;
+  line-height: 0;
+}
+.cv-box canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 540px;
+  object-fit: contain;
+  image-rendering: auto;
+}
+.stamp {
+  position: absolute;
+  bottom: 10px; right: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  padding: 4px 8px;
+  opacity: 0.85;
+}
+.progress-line {
+  position: absolute;
+  top: 0; left: 0;
+  height: 2px;
+  background: var(--rust);
+  width: 0%;
+  transition: width 0.25s ease;
+  z-index: 10;
+}
+.status-bar {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  align-self: flex-start;
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.status-item { display: flex; align-items: center; gap: 5px; }
+.status-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sage); }
+.reupload-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.08em;
+  color: var(--rust);
+  border: 1px solid var(--rust);
+  background: transparent;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.reupload-btn:hover { background: var(--rust); color: var(--paper); }
+.saved-list { display: flex; flex-direction: column; gap: 5px; }
+.saved-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.saved-item:hover { background: #ede6d8; border-color: var(--rust); }
+.saved-item-name {
+  flex: 1;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.saved-item-style {
+  font-size: 0.56rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  flex-shrink: 0;
+}
+.saved-item-del {
+  color: var(--muted);
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 3px;
+  transition: color 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.saved-item-del:hover { color: var(--rust); }
+.save-row { display: flex; gap: 6px; }
+.save-input {
+  flex: 1;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.64rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+.save-input:focus { border-color: var(--rust); }
+.save-input::placeholder { color: var(--border); }
+.btn-sm {
+  background: var(--rust);
+  color: var(--paper);
+  border: none;
+  padding: 8px 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-sm:hover { background: #a8421a; }
+.empty-hint {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--border);
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 14px 0;
+}
+.batch-dropzone {
+  border: 2px dashed var(--border);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--paper);
+  flex-shrink: 0;
+}
+.batch-dropzone:hover, .batch-dropzone.over { border-color: var(--rust); background: rgba(196,80,26,0.04); }
+.batch-dz-text { font-size: 0.72rem; color: var(--muted); }
+.batch-dz-text span { color: var(--rust); cursor: pointer; text-decoration: underline; }
+.batch-dz-hint { font-size: 0.58rem; color: var(--border); font-family: 'Space Mono', monospace; margin-top: 4px; letter-spacing: 0.08em; }
+.batch-queue { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; flex-shrink: 0; }
+.batch-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+}
+.batch-thumb {
+  width: 28px; height: 28px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  display: block;
+}
+.batch-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ink);
+}
+.batch-status {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  width: 44px;
+  text-align: right;
+}
+.batch-status.pending { color: var(--muted); }
+.batch-status.running { color: var(--ochre); }
+.batch-status.done    { color: var(--sage); }
+.batch-status.error   { color: var(--rust); }
+.batch-prog-wrap { height: 2px; background: var(--border); overflow: hidden; flex-shrink: 0; }
+.batch-prog-bar  { height: 100%; background: var(--rust); width: 0%; transition: width 0.2s; }
+.info-box {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  padding: 12px;
+  font-size: 0.68rem;
+  line-height: 1.7;
+  color: var(--muted);
+}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); }
+.processing .cv-label { animation: blink 1.2s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+input[type=file] { display: none; }
+.hidden { display:none !important; }
+@media (max-width: 1000px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { min-height: auto; }
+  .compare-row { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<div class="root">
 <header>
-  <div style="display:flex;align-items:baseline">
+  <div class="logo-wrap">
     <span class="logo">Mirage</span>
-    <span class="logo-tag">插画风格化</span>
+    <span class="logo-tag">插画风格化 3.0 C</span>
   </div>
-  <div class="header-r">ILLUSTRATION STYLIZER · GPU REALTIME</div>
+  <div class="header-right">FOUNDATION + INSPIRATION · SMOOTH SAFE · TAB STABLE</div>
 </header>
-
-<div class="body">
-<!-- ══════════ SIDEBAR ══════════ -->
-<aside class="sidebar">
-  <div class="side-tabs">
-    <button class="side-tab active" data-tab="adjust">调整</button>
-    <button class="side-tab" data-tab="saved">预设库</button>
-    <button class="side-tab" data-tab="batch">批处理</button>
-  </div>
-
-  <!-- 调整 -->
-  <div class="side-panel active" id="tab-adjust">
-    <div>
-      <div class="sh">滤镜选择</div>
-      <div class="fcat-bar">
-        <button class="fcat-btn active" data-fcat="base">基础 (6)</button>
-        <button class="fcat-btn" data-fcat="inspo">灵感 (8)</button>
-        <button class="fcat-btn" data-fcat="extra">扩展 (4)</button>
-      </div>
-      <div class="filter-grid" id="fcat-base">
-        <div class="filter-card active" data-style="comic"><span class="fc-icon">🎌</span><div class="fc-info"><div class="fc-name">COMIC FLAT</div><div class="fc-desc">强色块·减渐变·硬边界</div></div><span class="fc-tag tag-base">基础</span></div>
-        <div class="filter-card" data-style="retroprint"><span class="fc-icon">📺</span><div class="fc-info"><div class="fc-name">RETRO PRINT</div><div class="fc-desc">老印刷·偏暖·网点颗粒</div></div><span class="fc-tag tag-base">基础</span></div>
-        <div class="filter-card" data-style="gouache"><span class="fc-icon">🖌️</span><div class="fc-info"><div class="fc-name">GOUACHE</div><div class="fc-desc">水粉体积·Kuwahara</div></div><span class="fc-tag tag-base">基础</span></div>
-        <div class="filter-card" data-style="woodblock"><span class="fc-icon">🪵</span><div class="fc-info"><div class="fc-name">WOODBLOCK</div><div class="fc-desc">木刻版画·高对比</div></div><span class="fc-tag tag-base">基础</span></div>
-        <div class="filter-card" data-style="screen"><span class="fc-icon">📋</span><div class="fc-info"><div class="fc-name">SCREEN INK</div><div class="fc-desc">丝网印刷·CMY错位</div></div><span class="fc-tag tag-base">基础</span></div>
-        <div class="filter-card" data-style="cel"><span class="fc-icon">✏️</span><div class="fc-info"><div class="fc-name">CEL ANIME</div><div class="fc-desc">赛璐璐·HSV量化</div></div><span class="fc-tag tag-base">基础</span></div>
-      </div>
-      <div class="filter-grid" id="fcat-inspo" style="display:none">
-        <div class="filter-card" data-style="flat"><span class="fc-icon">🎨</span><div class="fc-info"><div class="fc-name">FLAT</div><div class="fc-desc">扁平风格·色块分明</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="retro"><span class="fc-icon">📻</span><div class="fc-info"><div class="fc-name">RETRO</div><div class="fc-desc">美式复古·扫描线</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="kuwahara"><span class="fc-icon">🖼️</span><div class="fc-info"><div class="fc-name">KUWAHARA</div><div class="fc-desc">油画滤镜·方差最小</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="celshade"><span class="fc-icon">💡</span><div class="fc-info"><div class="fc-name">CEL SHADE</div><div class="fc-desc">描边卡通·渐变量化</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="pixel"><span class="fc-icon">👾</span><div class="fc-info"><div class="fc-name">PIXEL ART</div><div class="fc-desc">像素艺术·网格感</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="neon"><span class="fc-icon">🌆</span><div class="fc-info"><div class="fc-name">NEON NOIR</div><div class="fc-desc">霓虹赛博·边缘发光</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="watercolor"><span class="fc-icon">💧</span><div class="fc-info"><div class="fc-name">WATERCOLOR</div><div class="fc-desc">水彩晕染·纸张纹理</div></div><span class="fc-tag">灵感</span></div>
-        <div class="filter-card" data-style="risograph"><span class="fc-icon">🖨️</span><div class="fc-info"><div class="fc-name">RISOGRAPH</div><div class="fc-desc">印刷叠色·网点错位</div></div><span class="fc-tag">灵感</span></div>
-      </div>
-      <div class="filter-grid" id="fcat-extra" style="display:none">
-        <div class="filter-card" data-style="ukiyo"><span class="fc-icon">🗻</span><div class="fc-info"><div class="fc-name">UKIYO-E</div><div class="fc-desc">浮世绘·色带·波纹</div></div><span class="fc-tag">扩展</span></div>
-        <div class="filter-card" data-style="oilpaint"><span class="fc-icon">🎭</span><div class="fc-info"><div class="fc-name">OIL PAINT</div><div class="fc-desc">古典油画·笔触堆叠</div></div><span class="fc-tag">扩展</span></div>
-        <div class="filter-card" data-style="duotone"><span class="fc-icon">◑</span><div class="fc-info"><div class="fc-name">DUOTONE</div><div class="fc-desc">双色调·高对比映射</div></div><span class="fc-tag">扩展</span></div>
-        <div class="filter-card" data-style="mosaic"><span class="fc-icon">🔷</span><div class="fc-info"><div class="fc-name">MOSAIC</div><div class="fc-desc">马赛克·几何色块</div></div><span class="fc-tag">扩展</span></div>
-      </div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="tab-bar">
+      <button class="tab active" data-tab="adjust">调整</button>
+      <button class="tab" data-tab="saved">预设库</button>
+      <button class="tab" data-tab="batch">批处理</button>
     </div>
-    <div>
-      <div class="sh">描边模式</div>
-      <div class="tog-row">
-        <button class="tog-btn active" id="outlineOn">有描边</button>
-        <button class="tog-btn" id="outlineOff">无描边</button>
-        <button class="tog-btn" id="outlineHand">手绘线</button>
+    <div class="tab-panels">
+      <div class="tab-panel active" id="tab-adjust">
+        <div>
+          <div class="sec-head">风格预设</div>
+          <div class="preset-list" id="presetList"></div>
+        </div>
+        <div>
+          <div class="sec-head">描边模式</div>
+          <div class="outline-toggle" id="outlineToggle"></div>
+        </div>
+        <div>
+          <div class="sec-head">平滑</div>
+          <div class="smooth-toggle" id="smoothToggle"></div>
+        </div>
+        <div>
+          <div class="sec-head">输出倍率</div>
+          <div class="scale-toggle" id="scaleToggle"></div>
+        </div>
+        <div>
+          <div class="sec-head">参数微调</div>
+          <div class="param-stack">
+            <div class="param" id="param-flat">
+              <div class="param-hd"><span class="param-lbl">色块强度</span><span class="param-val" id="v-flat">0.85</span></div>
+              <input type="range" min="0" max="100" value="85" id="sl-flat">
+            </div>
+            <div class="param" id="param-steps">
+              <div class="param-hd"><span class="param-lbl">色阶数量</span><span class="param-val" id="v-steps">6</span></div>
+              <input type="range" min="2" max="16" value="6" id="sl-steps">
+            </div>
+            <div class="param" id="param-edge">
+              <div class="param-hd"><span class="param-lbl">描边粗细</span><span class="param-val" id="v-edge">0.65</span></div>
+              <input type="range" min="0" max="100" value="65" id="sl-edge">
+            </div>
+            <div class="param" id="param-grain">
+              <div class="param-hd"><span class="param-lbl">复古颗粒</span><span class="param-val" id="v-grain">0.40</span></div>
+              <input type="range" min="0" max="100" value="40" id="sl-grain">
+            </div>
+            <div class="param" id="param-warm">
+              <div class="param-hd"><span class="param-lbl">暖调偏移</span><span class="param-val" id="v-warm">0.30</span></div>
+              <input type="range" min="0" max="100" value="30" id="sl-warm">
+            </div>
+            <div class="param" id="param-sat">
+              <div class="param-hd"><span class="param-lbl">饱和度</span><span class="param-val" id="v-sat">1.20</span></div>
+              <input type="range" min="0" max="250" value="120" id="sl-sat">
+            </div>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn btn-ink" id="btnApply">▶ 应用效果</button>
+          <button class="btn btn-outline" id="btnExport">↓ 导出 PNG</button>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="sh">参数微调</div>
-      <div class="param-stack">
-        <div class="param"><div class="param-hd"><span class="param-lbl">色块强度</span><span class="param-val" id="v-flat">0.85</span></div><input type="range" min="0" max="100" value="85" id="sl-flat"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">色阶数量</span><span class="param-val" id="v-steps">6</span></div><input type="range" min="2" max="14" value="6" id="sl-steps"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">描边粗细</span><span class="param-val" id="v-edge">0.65</span></div><input type="range" min="0" max="100" value="65" id="sl-edge"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">复古颗粒</span><span class="param-val" id="v-grain">0.40</span></div><input type="range" min="0" max="100" value="40" id="sl-grain"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">暖调偏移</span><span class="param-val" id="v-warm">0.30</span></div><input type="range" min="0" max="100" value="30" id="sl-warm"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">饱和度</span><span class="param-val" id="v-sat">1.20</span></div><input type="range" min="0" max="250" value="120" id="sl-sat"></div>
-        <div class="param"><div class="param-hd"><span class="param-lbl">平滑度</span><span class="param-val" id="v-smooth">0.40</span></div><input type="range" min="0" max="100" value="40" id="sl-smooth"></div>
+      <div class="tab-panel" id="tab-saved">
+        <div>
+          <div class="sec-head">保存当前参数</div>
+          <div class="save-row">
+            <input class="save-input" type="text" id="presetNameInput" placeholder="预设名称…" maxlength="20">
+            <button class="btn-sm" id="btnSavePreset">保存</button>
+          </div>
+        </div>
+        <div>
+          <div class="sec-head">已保存的预设</div>
+          <div class="saved-list" id="savedList">
+            <div class="empty-hint" id="savedEmpty">还没有保存的预设</div>
+          </div>
+        </div>
+        
       </div>
-    </div>
-    <div>
-      <div class="sh">输出倍率</div>
-      <div class="tog-row">
-        <button class="sc-btn active" data-scale="1">1×</button>
-        <button class="sc-btn" data-scale="2">2×</button>
-        <button class="sc-btn" data-scale="3">3×</button>
-      </div>
-    </div>
-    <div class="btns">
-      <button class="btn btn-ink" id="btnApply">▶ 应用效果</button>
-      <button class="btn btn-outline" id="btnExport">↓ 导出 PNG</button>
-    </div>
-  </div>
-
-  <!-- 预设库 -->
-  <div class="side-panel" id="tab-saved">
-    <div><div class="sh">保存当前参数</div><div class="save-row"><input class="save-input" type="text" id="presetNameInput" placeholder="预设名称…" maxlength="20"><button class="btn-sm" id="btnSavePreset">保存</button></div></div>
-    <div><div class="sh">已保存的预设</div><div class="saved-list" id="savedList"><div class="empty-hint" id="savedEmpty">还没有保存的预设</div></div></div>
-  </div>
-
-  <!-- 批处理 -->
-  <div class="side-panel" id="tab-batch">
-    <div><div class="sh">批量导入</div>
-      <div class="batch-dz" id="batchDz">
-        <div class="batch-dz-text">拖入多张图片，或 <span onclick="document.getElementById('batchFi').click()">点击选择</span></div>
-        <div class="batch-dz-hint">使用「调整」面板当前参数处理全部图片</div>
-        <input type="file" id="batchFi" accept="image/*" multiple>
-      </div>
-    </div>
-    <div>
-      <div class="sh" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-        <span style="display:flex;align-items:center;gap:5px;">队列 <span id="batchCount" style="font-family:'Space Mono',monospace;font-size:.57rem;color:var(--rust);">0 张</span></span>
-        <span id="batchClear" style="font-family:'Space Mono',monospace;font-size:.52rem;color:var(--muted);cursor:pointer;letter-spacing:.06em;">清空</span>
-      </div>
-      <div class="batch-prog-wrap" style="margin-bottom:4px;"><div class="batch-prog-bar" id="batchProgBar"></div></div>
-      <div class="batch-queue" id="batchQueue"></div>
-    </div>
-    <div class="btns" style="padding-top:5px;">
-      <button class="btn btn-ink" id="btnBatchRun">▶ 开始批处理</button>
-      <button class="btn btn-outline" id="btnBatchDownload" disabled style="opacity:.4;">↓ 打包下载全部</button>
-    </div>
-  </div>
-</aside>
-
-<!-- ══════════ CANVAS ══════════ -->
-<main class="canvas-area">
-  <div class="dropzone" id="dz">
-    <div class="dz-icon">⬡</div>
-    <div class="dz-text">拖放图片到此处，或 <span onclick="document.getElementById('fi').click()">点击上传</span></div>
-    <div class="dz-hint">JPG · PNG · WEBP · 支持多次替换</div>
-    <input type="file" id="fi" accept="image/*">
-  </div>
-  <div class="result-wrap" id="resultWrap">
-    <div class="status-bar">
-      <div class="status-item"><span class="status-dot"></span><span id="sizeInfo">—</span></div>
-      <div class="status-item"><span style="color:var(--rust)">◆</span><span id="styleInfo">COMIC FLAT</span></div>
-      <div class="status-item"><span style="color:var(--teal)">⊞</span><span id="scaleInfo">1×</span></div>
-      <button class="reupload-btn" id="btnReupload">↺ 换图</button>
-      <input type="file" id="reuploadFi" accept="image/*">
-    </div>
-    <div class="compare-row">
-      <div class="cv-panel">
-        <div class="cv-label"><span class="pip" style="color:var(--muted)"></span>ORIGINAL · 原图</div>
-        <div class="cv-box"><canvas id="srcCv"></canvas></div>
-      </div>
-      <div class="cv-panel" id="outPanel">
-        <div class="cv-label"><span class="pip" style="color:var(--rust)"></span>STYLED · 风格化</div>
-        <div class="cv-box">
-          <div class="progress-line" id="prog"></div>
-          <canvas id="dstCv"></canvas>
-          <div class="stamp" id="stamp">COMIC FLAT</div>
+      <div class="tab-panel" id="tab-batch">
+        <div>
+          <div class="sec-head">批量导入</div>
+          <div class="batch-dropzone" id="batchDz">
+            <div class="batch-dz-text">拖入多张图片，或 <span onclick="document.getElementById('batchFi').click()">点击选择</span></div>
+            <div class="batch-dz-hint">使用当前【调整】里的滤镜、平滑、倍率和参数</div>
+            <input type="file" id="batchFi" accept="image/*" multiple>
+          </div>
+        </div>
+        <div>
+          <div class="sec-head" style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="display:flex;align-items:center;gap:8px;">队列 <span id="batchCount" style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--rust);">0 张</span></span>
+            <span id="batchClear" style="font-family:'Space Mono',monospace;font-size:0.56rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;">清空</span>
+          </div>
+          <div class="batch-prog-wrap" style="margin-bottom:6px;"><div class="batch-prog-bar" id="batchProgBar"></div></div>
+          <div class="batch-queue" id="batchQueue"></div>
+        </div>
+        <div class="btns" style="margin-top:auto; padding-top:8px; flex-shrink:0;">
+          <button class="btn btn-ink" id="btnBatchRun">▶ 开始批处理</button>
+          <button class="btn btn-outline" id="btnBatchDownload" disabled style="opacity:0.4;">↓ 打包下载全部</button>
         </div>
       </div>
     </div>
-  </div>
-</main>
-</div><!-- .body -->
-</div><!-- .root -->
+  </aside>
+  <main class="canvas-area">
+    <div class="dropzone" id="dz" onclick="document.getElementById('fi').click()">
+      <div class="dz-icon">⬡</div>
+      <div class="dz-text">拖放图片到此处，或 <span>点击上传</span></div>
+      <div class="dz-hint">JPG · PNG · WEBP · 支持多次替换</div>
+      <input type="file" id="fi" accept="image/*">
+    </div>
+    <div class="result-wrap" id="resultWrap">
+      <div class="status-bar" id="statusBar">
+        <div class="status-item"><span class="status-dot"></span><span id="sizeInfo">—</span></div>
+        <div class="status-item"><span style="color:var(--rust)">◆</span><span id="styleInfo">COMIC FLAT</span></div>
+        <div class="status-item"><span style="color:var(--teal)">●</span><span id="smoothInfo">平滑: OFF</span></div>
+        <div class="status-item"><span style="color:var(--ochre)">▲</span><span id="scaleInfo">倍率: 1x</span></div>
+        <button class="reupload-btn" id="btnReupload">↺ 换图</button>
+        <input type="file" id="reuploadFi" accept="image/*">
+      </div>
+      <div class="compare-row">
+        <div class="cv-panel">
+          <div class="cv-label"><span class="pip" style="color:var(--muted)"></span>ORIGINAL · 原图</div>
+          <div class="cv-box"><canvas id="srcCv"></canvas></div>
+        </div>
+        <div class="cv-panel" id="outPanel">
+          <div class="cv-label" id="outLbl"><span class="pip" style="color:var(--rust)"></span>STYLED · 风格化</div>
+          <div class="cv-box" id="outBox">
+            <div class="progress-line" id="prog"></div>
+            <canvas id="dstCv"></canvas>
+            <div class="stamp" id="stamp">COMIC FLAT</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
 <canvas id="glCv" style="display:none"></canvas>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
-// ════════════════════════════════════════
-//  WebGL
-// ════════════════════════════════════════
-const glCv=document.getElementById('glCv');
-const gl=glCv.getContext('webgl2')||glCv.getContext('webgl');
-
-const VS=`attribute vec2 a_pos,a_uv;varying vec2 v_uv;void main(){gl_Position=vec4(a_pos,0,1);v_uv=a_uv;}`;
-
-const CMN=`precision highp float;
+const PRESETS = {
+  comic:      { group:'基础滤镜', icon:'🎌', name:'COMIC FLAT',  desc:'强色块·减渐变·硬边界', shader:'comic', uses:['flat','steps','edge','grain','warm','sat'] },
+  retroprint: { group:'基础滤镜', icon:'📺', name:'RETRO PRINT', desc:'老印刷·偏暖·网点颗粒', shader:'retroprint', uses:['flat','steps','edge','grain','warm','sat'] },
+  gouache:    { group:'基础滤镜', icon:'🖌️', name:'GOUACHE',     desc:'水粉体积·Kuwahara油画', shader:'gouache', uses:['flat','steps','edge','grain','warm','sat'] },
+  woodblock:  { group:'基础滤镜', icon:'🪵', name:'WOODBLOCK',   desc:'木刻版画·高对比·粗粒', shader:'woodblock', uses:['flat','steps','edge','grain','warm','sat'] },
+  screen:     { group:'基础滤镜', icon:'📋', name:'SCREEN INK',  desc:'丝网印刷·CMY叠色错位', shader:'screen', uses:['flat','steps','edge','grain','warm','sat'] },
+  cel:        { group:'基础滤镜', icon:'✏️', name:'CEL ANIME',   desc:'赛璐璐·HSV量化·厚线', shader:'cel', uses:['flat','steps','edge','grain','warm','sat'] },
+  flat:       { group:'灵感滤镜', icon:'⬜', name:'FLAT',        desc:'更直接的扁平化压缩', shader:'flat', uses:['flat','steps','edge','grain','warm','sat'] },
+  retro:      { group:'灵感滤镜', icon:'📻', name:'RETRO',       desc:'旧屏幕·暖偏色·轻噪点', shader:'retro', uses:['flat','steps','edge','grain','warm','sat'] },
+  kuwahara:   { group:'灵感滤镜', icon:'🎨', name:'KUWAHARA',    desc:'油画块面·保大形', shader:'kuwahara', uses:['flat','steps','edge','grain','warm','sat'] },
+  pixel:      { group:'灵感滤镜', icon:'👾', name:'PIXEL ART',   desc:'像素格·有限色', shader:'pixel', uses:['flat','steps','edge','grain','warm','sat'] },
+  neon:       { group:'灵感滤镜', icon:'🌆', name:'NEON NOIR',   desc:'霓虹高亮·边缘发光', shader:'neon', uses:['flat','steps','edge','grain','warm','sat'] },
+  watercolor: { group:'灵感滤镜', icon:'💧', name:'WATERCOLOR',  desc:'水彩晕染·边缘柔和', shader:'watercolor', uses:['flat','steps','edge','grain','warm','sat'] },
+  risograph:  { group:'灵感滤镜', icon:'🖨️', name:'RISOGRAPH',   desc:'印刷叠色·纸张颗粒', shader:'risograph', uses:['flat','steps','edge','grain','warm','sat'] },
+};
+const OUTLINES = [
+  { id:1, label:'有描边' },
+  { id:0, label:'无描边' },
+  { id:2, label:'手绘线' }
+];
+const SMOOTHS = [
+  { id:0, label:'OFF' },
+  { id:1, label:'LOW' },
+  { id:2, label:'HIGH' }
+];
+const SCALES = [
+  { id:1, label:'1x' },
+  { id:2, label:'2x' },
+  { id:3, label:'3x' }
+];
+const STORAGE_KEY = 'mirage_complete_c_presets';
+let currentStyle = 'comic';
+let outlineMode = 1;
+let smoothMode = 0;
+let scaleMode = 1;
+let srcTex = null, imgW = 0, imgH = 0, outputW = 0, outputH = 0;
+let batchFiles = [], batchResults = [], batchRunning = false;
+const glCv = document.getElementById('glCv');
+const gl = glCv.getContext('webgl2') || glCv.getContext('webgl');
+if (!gl) alert('当前浏览器不支持 WebGL，建议使用 Chrome 或 Edge');
+const VS = `
+attribute vec2 a_pos;
+attribute vec2 a_uv;
+varying vec2 v_uv;
+void main() {
+  gl_Position = vec4(a_pos, 0.0, 1.0);
+  v_uv = a_uv;
+}`;
+const RGB2HSV = `
+vec3 rgb2hsv(vec3 c) {
+  vec4 K = vec4(0.0,-1.0/3.0,2.0/3.0,-1.0);
+  vec4 p = mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g));
+  vec4 q = mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));
+  float d = q.x - min(q.w,q.y);
+  return vec3(abs(q.z+(q.w-q.y)/(6.0*d+1e-10)), d/(q.x+1e-10), q.x);
+}
+vec3 hsv2rgb(vec3 c) {
+  vec3 rgb = clamp(abs(mod(c.x*6.0+vec3(0,4,2),6.0)-3.0)-1.0,0.0,1.0);
+  return c.z * mix(vec3(1.0),rgb,c.y);
+}
+float luma(vec3 c){ return dot(c, vec3(0.299,0.587,0.114)); }
+float rand(vec2 c){ return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453); }
+vec3 bilateralApprox(sampler2D tex, vec2 uv, vec2 px, float amount) {
+  vec3 center = texture2D(tex, uv).rgb;
+  vec3 sum = vec3(0.0);
+  float weightSum = 0.0;
+  for (int y=-2; y<=2; y++) {
+    for (int x=-2; x<=2; x++) {
+      vec2 off = vec2(float(x), float(y)) * px;
+      vec3 sample = texture2D(tex, uv + off).rgb;
+      float dist2 = float(x*x + y*y);
+      float spatial = exp(-dist2 * 0.35);
+      float range = exp(-length(sample - center) * 14.0 * (1.0 + amount * 0.7));
+      float w = spatial * range;
+      sum += sample * w;
+      weightSum += w;
+    }
+  }
+  return mix(center, sum / max(weightSum, 0.0001), amount);
+}
+float edgeMask(sampler2D tex, vec2 uv, vec2 px, float strength, float mode) {
+  if (mode < 0.5) return 0.0;
+  vec2 wuv = uv;
+  if (mode > 1.5) {
+    float wobble = (rand(uv*200.0)-0.5)*px.x*2.5;
+    wuv = uv + vec2(wobble, -wobble*0.5);
+  }
+  vec2 p = px * 1.5;
+  float tl = luma(texture2D(tex, wuv+vec2(-p.x, p.y)).rgb);
+  float tm = luma(texture2D(tex, wuv+vec2( 0.0, p.y)).rgb);
+  float tr = luma(texture2D(tex, wuv+vec2( p.x, p.y)).rgb);
+  float ml = luma(texture2D(tex, wuv+vec2(-p.x, 0.0)).rgb);
+  float mr = luma(texture2D(tex, wuv+vec2( p.x, 0.0)).rgb);
+  float bl = luma(texture2D(tex, wuv+vec2(-p.x,-p.y)).rgb);
+  float bm = luma(texture2D(tex, wuv+vec2( 0.0,-p.y)).rgb);
+  float br = luma(texture2D(tex, wuv+vec2( p.x,-p.y)).rgb);
+  float gx = -tl-2.0*ml-bl + tr+2.0*mr+br;
+  float gy =  tl+2.0*tm+tr - bl-2.0*bm-br;
+  float e = sqrt(gx*gx+gy*gy);
+  float thresh = (mode > 1.5) ? 0.18 : 0.25;
+  return smoothstep(thresh, thresh+0.3, e * strength * 3.5);
+}
+vec3 applySmoothIfNeeded(sampler2D tex, vec2 uv, vec2 px, vec3 col, float smoothMode) {
+  if (smoothMode < 0.5) return col;
+  float amount = smoothMode < 1.5 ? 0.42 : 0.72;
+  vec3 sm = bilateralApprox(tex, uv, px, amount);
+  return mix(col, sm, amount * 0.75);
+}
+`;
+function applyPost(colVar) {
+  return `
+  ${colVar} = applySmoothIfNeeded(u_tex, uv, px, ${colVar}, u_smooth);
+  gl_FragColor = vec4(mix(orig.rgb, clamp(${colVar},0.0,1.0), u_flat), 1.0);
+  `;
+}
+const makeShader = (body) => `
+precision highp float;
 varying vec2 v_uv;
 uniform sampler2D u_tex;
-uniform float u_flat,u_steps,u_edge,u_grain,u_warm,u_sat,u_smooth,u_outline;
+uniform float u_flat;
+uniform float u_steps;
+uniform float u_edge;
+uniform float u_grain;
+uniform float u_warm;
+uniform float u_sat;
+uniform float u_outline;
+uniform float u_smooth;
 uniform vec2 u_res;
-vec3 rgb2hsv(vec3 c){vec4 K=vec4(0,-1./3.,2./3.,-1.);vec4 p=mix(vec4(c.bg,K.wz),vec4(c.gb,K.xy),step(c.b,c.g));vec4 q=mix(vec4(p.xyw,c.r),vec4(c.r,p.yzx),step(p.x,c.r));float d=q.x-min(q.w,q.y);return vec3(abs(q.z+(q.w-q.y)/(6.*d+1e-10)),d/(q.x+1e-10),q.x);}
-vec3 hsv2rgb(vec3 c){vec3 r=clamp(abs(mod(c.x*6.+vec3(0,4,2),6.)-3.)-1.,0.,1.);return c.z*mix(vec3(1.),r,c.y);}
-float luma(vec3 c){return dot(c,vec3(.299,.587,.114));}
-float rand(vec2 c){return fract(sin(dot(c,vec2(12.9898,78.233)))*43758.5453);}
-vec3 smooth3(vec2 uv,vec2 px,vec3 col,float amt){
-  if(amt<.01)return col;
-  float r=amt*2.;vec3 acc=col;float w=1.;vec3 ctr=col;
-  for(int dx=-2;dx<=2;dx++)for(int dy=-2;dy<=2;dy++){
-    if(dx==0&&dy==0)continue;
-    vec2 o=vec2(float(dx),float(dy))*px*r;
-    vec3 s=texture2D(u_tex,uv+o).rgb;
-    float wt=exp(-dot(s-ctr,s-ctr)*8.)*exp(-float(dx*dx+dy*dy)*.4);
-    acc+=s*wt;w+=wt;
-  }
-  return acc/w;
-}
-float edgeMask(vec2 uv,vec2 px,float str,float mode){
-  if(mode<.5)return 0.;
-  vec2 wu=uv;
-  if(mode>1.5){float wb=(rand(uv*200.)-.5)*px.x*2.2;wu=uv+vec2(wb,-wb*.5);}
-  vec2 p=px*1.4;
-  float tl=luma(texture2D(u_tex,wu+vec2(-p.x,p.y)).rgb),tm=luma(texture2D(u_tex,wu+vec2(0,p.y)).rgb),tr=luma(texture2D(u_tex,wu+p).rgb);
-  float ml=luma(texture2D(u_tex,wu+vec2(-p.x,0)).rgb),mr=luma(texture2D(u_tex,wu+vec2(p.x,0)).rgb);
-  float bl=luma(texture2D(u_tex,wu-p).rgb),bm=luma(texture2D(u_tex,wu+vec2(0,-p.y)).rgb),br=luma(texture2D(u_tex,wu+vec2(p.x,-p.y)).rgb);
-  float gx=-tl-2.*ml-bl+tr+2.*mr+br,gy=tl+2.*tm+tr-bl-2.*bm-br;
-  float th=(mode>1.5)?.18:.25;return smoothstep(th,th+.28,sqrt(gx*gx+gy*gy)*str*3.5);
+${RGB2HSV}
+void main() {
+  vec2 uv = v_uv;
+  vec2 px = 1.0 / u_res;
+  vec4 orig = texture2D(u_tex, uv);
+  ${body}
 }`;
-
-// Kuwahara helper (reused in gouache, oil, kuwahara shaders)
-const KUW=`vec3 kuwahara(vec2 uv,vec2 px){
-  vec3 m0=vec3(0),m1=vec3(0),m2=vec3(0),m3=vec3(0),s0=vec3(0),s1=vec3(0),s2b=vec3(0),s3=vec3(0);float n=25.;
-  for(int j=-4;j<=0;j++)for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m0+=c;s0+=c*c;}
-  for(int j=-4;j<=0;j++)for(int i=0;i<=4;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m1+=c;s1+=c*c;}
-  for(int j=0;j<=4;j++)for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m2+=c;s2b+=c*c;}
-  for(int j=0;j<=4;j++)for(int i=0;i<=4;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m3+=c;s3+=c*c;}
-  m0/=n;m1/=n;m2/=n;m3/=n;
-  s0=abs(s0/n-m0*m0);s1=abs(s1/n-m1*m1);s2b=abs(s2b/n-m2*m2);s3=abs(s3/n-m3*m3);
-  float v0=s0.r+s0.g+s0.b,v1=s1.r+s1.g+s1.b,v2=s2b.r+s2b.g+s2b.b,v3=s3.r+s3.g+s3.b;
-  float mv=min(min(v0,v1),min(v2,v3));
-  return(mv==v0)?m0:(mv==v1)?m1:(mv==v2)?m2:m3;
-}`;
-
-const SHADERS={
-comic: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec3 h=rgb2hsv(orig.rgb);h.y=clamp(h.y*u_sat,0.,1.);vec3 col=hsv2rgb(h);
-  vec3 h2=rgb2hsv(col);float s=u_steps;h2.z=floor(h2.z*s+.5)/s;h2.x=floor(h2.x*(s*1.5)+.5)/(s*1.5);col=hsv2rgb(h2);
-  col.r=min(1.,col.r+u_warm*.12);col.g=min(1.,col.g+u_warm*.04);col.b=max(0.,col.b-u_warm*.1);
-  col+=(rand(uv+.3)-.5)*u_grain*.12;col=smooth3(uv,px,col,u_smooth);
-  col=mix(col,vec3(.06,.04,.02),edgeMask(uv,px,u_edge,u_outline));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-retroprint: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  float off=px.x*1.8;vec3 col;col.r=texture2D(u_tex,uv+vec2(off,0)).r;col.g=texture2D(u_tex,uv).g;col.b=texture2D(u_tex,uv+vec2(-off,px.y)).b;
-  vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);col=floor(col*u_steps+.5)/u_steps;
-  col.r=min(1.,col.r*(1.+u_warm*.18));col.g=min(1.,col.g*(1.+u_warm*.06));col.b=max(0.,col.b*(1.-u_warm*.22));
-  vec2 dUV=fract(uv*u_res/6.)-.5;float lm=luma(col);col=mix(col*.55,col,step(length(dUV),lm*.52+.02));
-  col*=(mod(floor(uv.y*u_res.y),4.)<1.)?.88:1.;col+=(rand(uv*300.+1.1)-.5)*u_grain*.14;
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.15,.08,.04),edgeMask(uv,px,u_edge,u_outline));
-  vec2 vp=uv*2.-1.;col*=1.-dot(vp,vp)*.25;gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-gouache: CMN+KUW+`void main(){vec2 uv=v_uv,px=1./u_res;vec3 col=kuwahara(uv,px);
-  vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);float st=max(2.,u_steps*.7);h.z=floor(h.z*st+.5)/st;col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.1);col.b=max(0.,col.b-u_warm*.08);col+=(rand(uv*180.+2.3)-.5)*u_grain*.1;
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.12,.08,.04),edgeMask(uv,px,u_edge,u_outline));
-  vec4 orig=texture2D(u_tex,uv);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-woodblock: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec3 h=rgb2hsv(orig.rgb);h.y=clamp(h.y*u_sat*.8,0.,1.);vec3 col=hsv2rgb(h);
-  float s=max(2.,u_steps*.6);col=floor(col*s+.5)/s;col=(col-.5)*1.4+.5;col=clamp(col,0.,1.);
-  col.r=min(1.,col.r+u_warm*.2);col.g=min(1.,col.g+u_warm*.08);col.b=max(0.,col.b-u_warm*.18);
-  col+=(rand(vec2(floor(uv.x*u_res.x/2.),uv.y*u_res.y))-.5)*u_grain*.22;
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.08,.05,.02),min(1.,edgeMask(uv,px*1.5,u_edge*1.4,u_outline)*1.3));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-screen: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  float off=px.x*2.5,stp=max(2.,u_steps*.5);
-  float c=floor((1.-texture2D(u_tex,uv+vec2(off,0)).r)*stp+.5)/stp;
-  float m=floor((1.-texture2D(u_tex,uv+vec2(-off,off)).g)*stp+.5)/stp;
-  float y=floor((1.-texture2D(u_tex,uv).b)*stp+.5)/stp;
-  vec2 uvC=fract(uv*u_res/5.)-.5,uvM=fract(uv*u_res/6.5)-.5,uvY=fract(uv*u_res/8.)-.5;
-  vec3 paper=vec3(.96+u_warm*.03,.93+u_warm*.01,.88-u_warm*.02),col=paper;
-  col=mix(col,vec3(0.,.62,.75),step(length(uvC),c*.5+.02)*.85);
-  col=mix(col,vec3(.88,.12,.38),step(length(uvM),m*.5+.02)*.85);
-  col=mix(col,vec3(.92,.80,.08),step(length(uvY),y*.5+.02)*.85);
-  col+=(rand(uv*600.)-.5)*u_grain*.1;col=smooth3(uv,px,col,u_smooth);
-  col=mix(col,vec3(.1,.05,.12),edgeMask(uv,px,u_edge,u_outline)*.7);
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-cel: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec3 h=rgb2hsv(orig.rgb);float sv=max(2.,u_steps),ss=max(2.,u_steps*.7);
-  h.z=floor(h.z*sv+.5)/sv;h.y=min(1.,floor(h.y*ss+.5)/ss*u_sat);vec3 col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.09);col.b=max(0.,col.b-u_warm*.07);col+=(rand(uv*240.+3.7)-.5)*u_grain*.08;
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.04,.03,.03),min(1.,edgeMask(uv,px,u_edge*1.2,u_outline)*1.2));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-flat: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec3 col=floor(orig.rgb*u_steps+.5)/u_steps;vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.1);col.b=max(0.,col.b-u_warm*.08);col+=(rand(uv+.7)-.5)*u_grain*.08;
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.05,.04,.02),edgeMask(uv,px,u_edge,u_outline));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-retro: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  float s=max(3.,u_steps);vec3 col=floor(orig.rgb*s)/(s-1.);
-  col.r=min(1.,col.r*1.15);col.g=min(1.,col.g*1.05);col.b=col.b*.85;
-  col=mix(vec3(luma(col)),col,u_sat);col*=(mod(floor(uv.y*u_res.y),3.)<1.)?.86:1.;
-  col+=(rand(uv+.5)-.5)*u_grain*.09;col=smooth3(uv,px,col,u_smooth);
-  vec2 vp=uv*2.-1.;col*=1.-dot(vp,vp)*.38;col=mix(col,vec3(.12,.06,.02),edgeMask(uv,px,u_edge,u_outline));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-kuwahara: CMN+KUW+`void main(){vec2 uv=v_uv,px=1./u_res;vec3 col=kuwahara(uv,px);
-  vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.08);col.b=max(0.,col.b-u_warm*.07);
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.1,.07,.04),edgeMask(uv,px,u_edge,u_outline));
-  vec4 orig=texture2D(u_tex,uv);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-celshade: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec3 h=rgb2hsv(orig.rgb);float lv=max(2.,u_steps);h.z=floor(h.z*lv+.5)/lv;h.y=clamp(h.y*u_sat,0.,1.);
-  vec3 col=hsv2rgb(h);col.r=min(1.,col.r+u_warm*.09);col.b=max(0.,col.b-u_warm*.07);
-  col+=(rand(uv*230.)-.5)*u_grain*.07;col=smooth3(uv,px,col,u_smooth);
-  col=mix(col,vec3(0),edgeMask(uv,px,u_edge,u_outline));
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-pixel: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;float ps=max(2.,u_flat*.02*u_res.x*.5+2.);
-  vec4 orig=texture2D(u_tex,uv);vec3 col=texture2D(u_tex,floor(uv*u_res/ps)*ps/u_res).rgb;
-  col=floor(col*u_steps+.5)/u_steps;vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.08);vec2 pp=mod(uv*u_res,ps);col-=step(ps-.7,pp.x)*.2+step(ps-.7,pp.y)*.2;
-  col=smooth3(uv,px,col,u_smooth*.3);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-neon: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);vec3 col=orig.rgb*.3;
-  vec3 tl=texture2D(u_tex,uv+vec2(-px.x,px.y)).rgb,tr=texture2D(u_tex,uv+px).rgb,bl=texture2D(u_tex,uv-px).rgb,br=texture2D(u_tex,uv+vec2(px.x,-px.y)).rgb;
-  vec3 gx=-tl-2.*texture2D(u_tex,uv+vec2(-px.x,0)).rgb-bl+tr+2.*texture2D(u_tex,uv+vec2(px.x,0)).rgb+br;
-  vec3 gy=tl+2.*texture2D(u_tex,uv+vec2(0,px.y)).rgb+tr-bl-2.*texture2D(u_tex,uv+vec2(0,-px.y)).rgb-br;
-  float e=smoothstep(.2,1.2,(length(gx)+length(gy))*u_edge*1.5);
-  vec3 h=rgb2hsv(orig.rgb);h.y=1.;h.z=1.;col+=mix(hsv2rgb(h),vec3(.5,.9,1.),.3)*e*1.8*u_sat;
-  col=smooth3(uv,px,col,u_smooth);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-watercolor: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  vec4 blur=vec4(0);float cnt=0.;for(float dx=-3.;dx<=3.;dx++)for(float dy=-3.;dy<=3.;dy++){blur+=texture2D(u_tex,uv+vec2(dx,dy)*px*2.);cnt+=1.;}blur/=cnt;
-  vec3 col=mix(orig.rgb,blur.rgb,.65);float pap=.92+rand(uv*80.)*.06+rand(uv*200.+1.5)*.03;
-  vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat*.85,0.,1.);h.z=min(1.,h.z*pap);col=hsv2rgb(h);
-  col.r=min(1.,col.r*1.04);col.b=col.b*.92;col=smooth3(uv,px,col,u_smooth);
-  col=mix(col,vec3(.1,.07,.05),edgeMask(uv,px,u_edge,u_outline)*.6);
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-risograph: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);float off=px.x*2.5,ds=max(3.,u_steps*.7);
-  float c=floor((1.-texture2D(u_tex,uv+vec2(off,0)).r)*ds+.5)/ds;
-  float m=floor((1.-texture2D(u_tex,uv+vec2(-off,off*.5)).g)*ds+.5)/ds;
-  float y=floor((1.-texture2D(u_tex,uv).b)*ds+.5)/ds;
-  vec2 uvC=fract(uv*u_res/5.)-.5,uvM=fract(uv*u_res/6.5)-.5,uvY=fract(uv*u_res/8.)-.5;
-  vec3 paper=vec3(.97+u_warm*.02,.95+u_warm*.01,.90-u_warm*.02),col=paper;
-  col=mix(col,vec3(0.,.6,.8),step(length(uvC),c*.48+.02)*.8);
-  col=mix(col,vec3(.9,.1,.4),step(length(uvM),m*.48+.02)*.8);
-  col=mix(col,vec3(.95,.85,.1),step(length(uvY),y*.48+.02)*.8);
-  col+=(rand(uv*500.)-.5)*u_grain*.07;float lm=luma(col);col=mix(vec3(lm),col,u_sat);
-  col=smooth3(uv,px,col,u_smooth);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-ukiyo: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);
-  float wave=sin(uv.y*u_res.y*.08)*px.x*u_smooth*2.;vec3 col=texture2D(u_tex,uv+vec2(wave,0)).rgb;
-  float s=max(3.,u_steps*.5);col=floor(col*s+.5)/s;
-  vec3 h=rgb2hsv(col);h.x=floor(h.x*8.+.5)/8.;h.y=clamp(h.y*u_sat*.9,0.,1.);col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.12);col.b=max(0.,col.b-u_warm*.15);col+=(rand(uv*150.)-.5)*u_grain*.06;
-  col=mix(col,vec3(.05,.03,.01),edgeMask(uv,px,u_edge,u_outline)*1.2);
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-oilpaint: CMN+KUW+`void main(){vec2 uv=v_uv,px=1./u_res;vec3 col=kuwahara(uv,px*1.5);
-  float canvas=rand(floor(uv*u_res/2.)*2.);col+=(canvas-.5)*u_grain*.18;
-  col.r=min(1.,col.r+u_warm*.1);col.b=max(0.,col.b-u_warm*.08);
-  vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);
-  col=smooth3(uv,px,col,u_smooth);col=mix(col,vec3(.1,.07,.04),edgeMask(uv,px,u_edge*.7,u_outline)*.6);
-  vec4 orig=texture2D(u_tex,uv);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-duotone: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;vec4 orig=texture2D(u_tex,uv);float l=luma(orig.rgb);
-  vec3 shad=vec3(.18+u_warm*.12,.09+u_warm*.05,.05),hi=vec3(.88,.82+u_warm*.06,.65+u_warm*.04);
-  vec3 col=mix(shad,hi,l);col=smooth3(uv,px,col,u_smooth);col+=(rand(uv*400.)-.5)*u_grain*.08;
-  col=mix(col,shad*.3,edgeMask(uv,px,u_edge,u_outline)*.8);
-  gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
-
-mosaic: CMN+`void main(){vec2 uv=v_uv,px=1./u_res;float ts=max(3.,u_steps*1.5);
-  vec4 orig=texture2D(u_tex,uv);vec3 col=texture2D(u_tex,floor(uv*u_res/ts)*ts/u_res+ts*px*.5).rgb;
-  col=floor(col*u_steps+.5)/u_steps;vec3 h=rgb2hsv(col);h.y=clamp(h.y*u_sat,0.,1.);col=hsv2rgb(h);
-  col.r=min(1.,col.r+u_warm*.08);vec2 tf=fract(uv*u_res/ts);
-  float gx=step(ts-1.,tf.x*ts),gy=step(ts-1.,tf.y*ts);col*=1.-(gx+gy-gx*gy)*.35;
-  col=smooth3(uv,px,col,u_smooth*.5);gl_FragColor=vec4(mix(orig.rgb,clamp(col,0.,1.),u_flat),1.);}`,
+const SHADERS = {
+  comic: makeShader(`
+    vec3 hsv = rgb2hsv(orig.rgb);
+    hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0);
+    vec3 col = hsv2rgb(hsv);
+    float s2 = max(2.0, u_steps);
+    vec3 h2 = rgb2hsv(col);
+    h2.z = floor(h2.z * s2 + 0.5) / s2;
+    h2.x = floor(h2.x * (s2 * 1.5) + 0.5) / (s2 * 1.5);
+    col = hsv2rgb(h2);
+    col.r = min(1.0, col.r + u_warm * 0.12);
+    col.g = min(1.0, col.g + u_warm * 0.04);
+    col.b = max(0.0, col.b - u_warm * 0.10);
+    float g = (rand(uv + 0.3) - 0.5) * u_grain * 0.12;
+    col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.06, 0.04, 0.02), edge);
+    ${applyPost('col')}
+  `),
+  retroprint: makeShader(`
+    float off = px.x * 1.8;
+    vec3 col;
+    col.r = texture2D(u_tex, uv+vec2( off,  0.0)).r;
+    col.g = texture2D(u_tex, uv).g;
+    col.b = texture2D(u_tex, uv+vec2(-off, px.y)).b;
+    vec3 hsv = rgb2hsv(col);
+    hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0);
+    col = hsv2rgb(hsv);
+    float s = max(2.0, u_steps);
+    col = floor(col * s + 0.5) / s;
+    col.r = min(1.0, col.r * (1.0 + u_warm * 0.18));
+    col.g = min(1.0, col.g * (1.0 + u_warm * 0.06));
+    col.b = max(0.0, col.b * (1.0 - u_warm * 0.22));
+    float dotScale = 6.0;
+    vec2 dotUV = fract(uv * u_res / dotScale) - 0.5;
+    float lum = luma(col);
+    float dot = step(length(dotUV), lum * 0.52 + 0.02);
+    col = mix(col * 0.55, col, dot);
+    float scan = mod(floor(uv.y * u_res.y), 4.0) < 1.0 ? 0.88 : 1.0;
+    col *= scan;
+    float g = (rand(uv * 300.0 + 1.1) - 0.5) * u_grain * 0.14;
+    col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.15, 0.08, 0.04), edge);
+    vec2 vp = uv * 2.0 - 1.0;
+    float vig = 1.0 - dot(vp, vp) * 0.25;
+    col *= vig;
+    ${applyPost('col')}
+  `),
+  gouache: makeShader(`
+    vec3 m[4]; vec3 s2[4];
+    for(int k=0;k<4;k++){m[k]=vec3(0.0);s2[k]=vec3(0.0);} 
+    float n = 25.0;
+    for(int j=-4;j<=0;j++){for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m[0]+=c;s2[0]+=c*c;}}
+    for(int j=-4;j<=0;j++){for(int i= 0;i<=4;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m[1]+=c;s2[1]+=c*c;}}
+    for(int j= 0;j<=4;j++){for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m[2]+=c;s2[2]+=c*c;}}
+    for(int j= 0;j<=4;j++){for(int i= 0;i<=4;i++){vec3 c=texture2D(u_tex,uv+vec2(float(i),float(j))*px).rgb;m[3]+=c;s2[3]+=c*c;}}
+    float minSig = 1e10; vec3 col = vec3(0.0);
+    for(int k=0;k<4;k++){ m[k]/=n; s2[k]=abs(s2[k]/n-m[k]*m[k]); float sig=s2[k].r+s2[k].g+s2[k].b; if(sig<minSig){minSig=sig; col=m[k];} }
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); float st = max(2.0, u_steps * 0.7); hsv.z = floor(hsv.z * st + 0.5) / st; col = hsv2rgb(hsv);
+    col.r = min(1.0, col.r + u_warm*0.1); col.b = max(0.0, col.b - u_warm*0.08);
+    float g = (rand(uv * 180.0 + 2.3) - 0.5) * u_grain * 0.1; col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline); col = mix(col, vec3(0.12,0.08,0.04), edge);
+    ${applyPost('col')}
+  `),
+  woodblock: makeShader(`
+    vec3 hsv = rgb2hsv(orig.rgb); hsv.y = clamp(hsv.y * u_sat * 0.8, 0.0, 1.0); vec3 col = hsv2rgb(hsv);
+    float s = max(2.0, u_steps * 0.6); col = floor(col * s + 0.5) / s; col = (col - 0.5) * 1.4 + 0.5; col = clamp(col, 0.0, 1.0);
+    col.r = min(1.0, col.r + u_warm * 0.2); col.g = min(1.0, col.g + u_warm * 0.08); col.b = max(0.0, col.b - u_warm * 0.18);
+    float gx = rand(vec2(floor(uv.x * u_res.x / 2.0), uv.y * u_res.y)); float noise = (gx - 0.5) * u_grain * 0.22; col += noise;
+    float edge = edgeMask(u_tex, uv, px * 1.5, u_edge * 1.4, u_outline); col = mix(col, vec3(0.08,0.05,0.02), min(1.0, edge * 1.3));
+    ${applyPost('col')}
+  `),
+  screen: makeShader(`
+    float off = px.x * 2.5;
+    float c = 1.0 - texture2D(u_tex, uv+vec2( off, 0.0)).r;
+    float m = 1.0 - texture2D(u_tex, uv+vec2(-off, off)).g;
+    float y = 1.0 - texture2D(u_tex, uv).b;
+    float steps = max(2.0, u_steps * 0.5);
+    vec2 uvC = fract(uv * u_res / 5.0) - 0.5;
+    vec2 uvM = fract(uv * u_res / 6.5) - 0.5;
+    vec2 uvY = fract(uv * u_res / 8.0) - 0.5;
+    c = floor(c * steps + 0.5) / steps; m = floor(m * steps + 0.5) / steps; y = floor(y * steps + 0.5) / steps;
+    float dotMaskC = step(length(uvC), c * 0.50 + 0.02);
+    float dotMaskM = step(length(uvM), m * 0.50 + 0.02);
+    float dotMaskY = step(length(uvY), y * 0.50 + 0.02);
+    vec3 paper = vec3(0.96 + u_warm*0.03, 0.93 + u_warm*0.01, 0.88 - u_warm*0.02);
+    vec3 inkC = vec3(0.0,  0.62, 0.75);
+    vec3 inkM = vec3(0.88, 0.12, 0.38);
+    vec3 inkY = vec3(0.92, 0.80, 0.08);
+    vec3 col = paper; col = mix(col, inkC, dotMaskC * 0.85); col = mix(col, inkM, dotMaskM * 0.85); col = mix(col, inkY, dotMaskY * 0.85);
+    float g = (rand(uv * 600.0) - 0.5) * u_grain * 0.1; col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline); col = mix(col, vec3(0.1, 0.05, 0.12), edge * 0.7);
+    ${applyPost('col')}
+  `),
+  cel: makeShader(`
+    vec3 hsv = rgb2hsv(orig.rgb);
+    float sv = max(2.0, u_steps); float ss = max(2.0, u_steps * 0.7);
+    hsv.z = floor(hsv.z * sv + 0.5) / sv; hsv.y = min(1.0, floor(hsv.y * ss + 0.5) / ss * u_sat);
+    vec3 col = hsv2rgb(hsv);
+    col.r = min(1.0, col.r + u_warm * 0.09); col.b = max(0.0, col.b - u_warm * 0.07);
+    float g = (rand(uv * 240.0 + 3.7) - 0.5) * u_grain * 0.08; col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge * 1.2, u_outline); col = mix(col, vec3(0.04, 0.03, 0.03), min(1.0, edge * 1.2));
+    ${applyPost('col')}
+  `),
+  flat: makeShader(`
+    vec3 col = orig.rgb;
+    float steps = max(2.0, u_steps);
+    col = floor(col * steps + 0.5) / steps;
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline); col = mix(col, vec3(0.05), edge);
+    float g = (rand(uv*400.0)-0.5) * u_grain * 0.09; col += g;
+    ${applyPost('col')}
+  `),
+  retro: makeShader(`
+    vec3 col = orig.rgb;
+    float off = px.x * 1.5; col.r = texture2D(u_tex, uv + vec2(off,0.0)).r; col.b = texture2D(u_tex, uv - vec2(off,0.0)).b;
+    float steps = max(3.0, u_steps); col = floor(col * steps) / (steps - 1.0);
+    col.r = min(1.0, col.r * (1.0 + 0.2 * u_warm)); col.g = min(1.0, col.g * (1.0 + 0.12 * u_warm)); col.b *= (1.0 - 0.15 * u_warm);
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    float line = mod(floor(uv.y * u_res.y), 3.0); float scan = line < 1.0 ? 0.88 : 1.0; col *= scan;
+    float g = (rand(uv+0.5)-0.5) * u_grain * 0.18; col += g;
+    ${applyPost('col')}
+  `),
+  kuwahara: makeShader(`
+    vec3 m[4]; vec3 s[4]; for(int k=0;k<4;k++){m[k]=vec3(0.0);s[k]=vec3(0.0);} float n=25.0;
+    for(int j=-4;j<=0;j++){for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex, uv+vec2(float(i),float(j))*px).rgb; m[0]+=c; s[0]+=c*c;}}
+    for(int j=-4;j<=0;j++){for(int i=0;i<=4;i++){vec3 c=texture2D(u_tex, uv+vec2(float(i),float(j))*px).rgb; m[1]+=c; s[1]+=c*c;}}
+    for(int j=0;j<=4;j++){for(int i=-4;i<=0;i++){vec3 c=texture2D(u_tex, uv+vec2(float(i),float(j))*px).rgb; m[2]+=c; s[2]+=c*c;}}
+    for(int j=0;j<=4;j++){for(int i=0;i<=4;i++){vec3 c=texture2D(u_tex, uv+vec2(float(i),float(j))*px).rgb; m[3]+=c; s[3]+=c*c;}}
+    float minSigma = 1e10; vec3 col = vec3(0.0);
+    for(int k=0;k<4;k++){ m[k]/=n; s[k]=abs(s[k]/n-m[k]*m[k]); float sigma=s[k].r+s[k].g+s[k].b; if(sigma < minSigma){minSigma=sigma; col=m[k];}}
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    ${applyPost('col')}
+  `),
+  pixel: makeShader(`
+    float pxSize = max(2.0, floor(u_steps));
+    vec2 pixUV = floor(uv * u_res / pxSize) * pxSize / u_res;
+    vec3 col = texture2D(u_tex, pixUV).rgb;
+    float steps = max(2.0, u_steps); col = floor(col * steps + 0.5) / steps;
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    vec2 pixPos = mod(uv * u_res, pxSize); float gridLine = step(pxSize - 0.8, pixPos.x) + step(pxSize - 0.8, pixPos.y); gridLine = clamp(gridLine, 0.0, 1.0) * 0.25; col -= gridLine;
+    ${applyPost('col')}
+  `),
+  neon: makeShader(`
+    vec3 col = orig.rgb * 0.35;
+    float edge = edgeMask(u_tex, uv, px, u_edge * 1.2, 1.0);
+    vec3 hsv = rgb2hsv(orig.rgb); hsv.y = 1.0; hsv.z = 1.0; vec3 neonCol = hsv2rgb(hsv); neonCol = mix(neonCol, vec3(0.5, 0.9, 1.0), 0.3);
+    col += neonCol * edge * 1.8 * u_sat;
+    vec3 bloom = vec3(0.0); for(int i=-2;i<=2;i++){ for(int j=-2;j<=2;j++){ bloom += texture2D(u_tex, uv + vec2(float(i), float(j))*px*2.0).rgb; }} bloom /= 25.0;
+    vec3 bHsv = rgb2hsv(bloom); bHsv.y = 1.0; col += hsv2rgb(bHsv) * 0.08;
+    ${applyPost('col')}
+  `),
+  watercolor: makeShader(`
+    vec3 blur = vec3(0.0); float count = 0.0;
+    for(int dx=-3; dx<=3; dx++){ for(int dy=-3; dy<=3; dy++){ blur += texture2D(u_tex, uv + vec2(float(dx), float(dy))*px*1.6).rgb; count += 1.0; } }
+    blur /= count;
+    float noise1 = rand(uv * 80.0) * 0.06; float noise2 = rand(uv * 200.0 + 1.5) * 0.03; float paper = 0.92 + noise1 + noise2;
+    vec3 col = mix(orig.rgb, blur, 0.65);
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat * 0.85, 0.0, 1.0); hsv.z = min(1.0, hsv.z * paper); col = hsv2rgb(hsv);
+    col.r = min(1.0, col.r * 1.04); col.b = col.b * 0.92;
+    ${applyPost('col')}
+  `),
+  risograph: makeShader(`
+    float off = px.x * 2.0;
+    float c = 1.0 - texture2D(u_tex, uv + vec2( off, 0.0)).r;
+    float m = 1.0 - texture2D(u_tex, uv + vec2(-off, off*0.5)).g;
+    float y = 1.0 - texture2D(u_tex, uv + vec2(0.0,-off)).b;
+    float dotSize = max(2.0, u_steps) * 0.5;
+    vec2 cellUV = fract(uv * u_res / dotSize) - 0.5;
+    float rad = length(cellUV);
+    float dotC = step(rad, c * 0.48 + 0.02); float dotM = step(rad, m * 0.48 + 0.02); float dotY = step(rad, y * 0.48 + 0.02);
+    vec3 risoC = vec3(0.0, 0.6, 0.8); vec3 risoM = vec3(0.9, 0.1, 0.4); vec3 risoY = vec3(0.95, 0.85, 0.1);
+    vec3 paper = vec3(0.97, 0.95, 0.90); vec3 col = paper; col = mix(col, risoC, dotC * 0.8); col = mix(col, risoM, dotM * 0.8); col = mix(col, risoY, dotY * 0.8);
+    float grain = (rand(uv * 500.0) - 0.5) * u_grain * 0.12; col += grain;
+    vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    ${applyPost('col')}
+  `)
 };
-
-function comp(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s)+'\n'+src.split('\n').map((l,i)=>i+': '+l).join('\n'));return s;}
-function mkP(fs){const p=gl.createProgram();gl.attachShader(p,comp(gl.VERTEX_SHADER,VS));gl.attachShader(p,comp(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);return p;}
-
-const qBuf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,0,0,1,-1,1,0,-1,1,0,1,1,1,1,1]),gl.STATIC_DRAW);
-
-const PROGS={};Object.keys(SHADERS).forEach(k=>{PROGS[k]=mkP(SHADERS[k]);});
-
-const NAMES={comic:'COMIC FLAT',retroprint:'RETRO PRINT',gouache:'GOUACHE',woodblock:'WOODBLOCK',screen:'SCREEN INK',cel:'CEL ANIME',flat:'FLAT',retro:'RETRO',kuwahara:'KUWAHARA',celshade:'CEL SHADE',pixel:'PIXEL ART',neon:'NEON NOIR',watercolor:'WATERCOLOR',risograph:'RISOGRAPH',ukiyo:'UKIYO-E',oilpaint:'OIL PAINT',duotone:'DUOTONE',mosaic:'MOSAIC'};
-const S2G={comic:'base',retroprint:'base',gouache:'base',woodblock:'base',screen:'base',cel:'base',flat:'inspo',retro:'inspo',kuwahara:'inspo',celshade:'inspo',pixel:'inspo',neon:'inspo',watercolor:'inspo',risograph:'inspo',ukiyo:'extra',oilpaint:'extra',duotone:'extra',mosaic:'extra'};
-
-let srcTex=null,imgW=0,imgH=0,curStyle='comic',outMode=1,outScale=1;
-
-function upTex(src){if(srcTex)gl.deleteTexture(srcTex);srcTex=gl.createTexture();gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.bindTexture(gl.TEXTURE_2D,srcTex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);}
-function bq(prog){gl.bindBuffer(gl.ARRAY_BUFFER,qBuf);const pos=gl.getAttribLocation(prog,'a_pos'),uv=gl.getAttribLocation(prog,'a_uv');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);}
-function su(prog,name,val){const l=gl.getUniformLocation(prog,name);if(l!==null)gl.uniform1f(l,val);}
-
-function getP(){return{flat:+document.getElementById('sl-flat').value/100,steps:+document.getElementById('sl-steps').value,edge:+document.getElementById('sl-edge').value/100,grain:+document.getElementById('sl-grain').value/100,warm:+document.getElementById('sl-warm').value/100,sat:+document.getElementById('sl-sat').value/100,smooth:+document.getElementById('sl-smooth').value/100};}
-
-function renderTo(dst,w,h){
-  glCv.width=w;glCv.height=h;gl.viewport(0,0,w,h);
-  const prog=PROGS[curStyle];gl.useProgram(prog);bq(prog);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,srcTex);gl.uniform1i(gl.getUniformLocation(prog,'u_tex'),0);
-  const p=getP();su(prog,'u_flat',p.flat);su(prog,'u_steps',p.steps);su(prog,'u_edge',p.edge);su(prog,'u_grain',p.grain);su(prog,'u_warm',p.warm);su(prog,'u_sat',p.sat);su(prog,'u_smooth',p.smooth);su(prog,'u_outline',outMode);
-  const rl=gl.getUniformLocation(prog,'u_res');if(rl)gl.uniform2f(rl,w,h);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-  const px=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,px);
-  dst.width=w;dst.height=h;const ctx=dst.getContext('2d');const id=ctx.createImageData(w,h);
-  for(let y=0;y<h;y++)id.data.set(px.subarray((h-1-y)*w*4,(h-y)*w*4),y*w*4);ctx.putImageData(id,0,0);
+function compileShader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s), src);
+  return s;
 }
-
-function render(){if(!srcTex)return;renderTo(document.getElementById('dstCv'),imgW,imgH);document.getElementById('stamp').textContent=NAMES[curStyle]||curStyle;document.getElementById('styleInfo').textContent=NAMES[curStyle]||curStyle;document.getElementById('scaleInfo').textContent=outScale+'×';}
-
-function loadImg(file){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{const MAX=900;let w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}imgW=w;imgH=h;const src=document.getElementById('srcCv');src.width=w;src.height=h;src.getContext('2d').drawImage(img,0,0,w,h);upTex(src);document.getElementById('dz').style.display='none';document.getElementById('resultWrap').classList.add('show');document.getElementById('sizeInfo').textContent=w+'×'+h;applyEff();};img.src=e.target.result;};r.readAsDataURL(file);}
-
-function applyEff(){const pr=document.getElementById('prog'),pan=document.getElementById('outPanel');pr.style.width='50%';pan.classList.add('processing');setTimeout(()=>{render();pr.style.width='100%';pan.classList.remove('processing');setTimeout(()=>pr.style.width='0%',270);},60);}
-
-// ── Tabs (only sidebar changes, canvas stays fixed) ──
-document.querySelectorAll('.side-tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.side-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.side-panel').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');document.getElementById('tab-'+t.dataset.tab).classList.add('active');
-}));
-
-// ── Filter category tabs ──
-document.querySelectorAll('.fcat-btn').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.fcat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-  ['base','inspo','extra'].forEach(cat=>document.getElementById('fcat-'+cat).style.display=(cat===btn.dataset.fcat)?'flex':'none');
-}));
-
-// ── Filter card click ──
-document.getElementById('tab-adjust').addEventListener('click',e=>{
-  const card=e.target.closest('.filter-card');if(!card)return;
-  document.querySelectorAll('.filter-card').forEach(c=>c.classList.remove('active'));card.classList.add('active');
-  curStyle=card.dataset.style;if(srcTex)applyEff();
-});
-
-// ── Outline ──
-['outlineOn','outlineOff','outlineHand'].forEach((id,i)=>{
-  document.getElementById(id).addEventListener('click',()=>{
-    ['outlineOn','outlineOff','outlineHand'].forEach(b=>document.getElementById(b).classList.remove('active'));
-    document.getElementById(id).classList.add('active');outMode=i===0?1:i===1?0:2;if(srcTex)applyEff();
+function makeProgram(fsSrc) {
+  const p = gl.createProgram();
+  gl.attachShader(p, compileShader(gl.VERTEX_SHADER, VS));
+  gl.attachShader(p, compileShader(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  return p;
+}
+const qBuf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, qBuf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,0,0, 1,-1,1,0, -1,1,0,1, 1,1,1,1]), gl.STATIC_DRAW);
+const PROGRAMS = {};
+Object.keys(SHADERS).forEach(key => PROGRAMS[key] = makeProgram(SHADERS[key]));
+function bindQuad(prog) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, qBuf);
+  const pos = gl.getAttribLocation(prog, 'a_pos');
+  const uv  = gl.getAttribLocation(prog, 'a_uv');
+  gl.enableVertexAttribArray(pos); gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 16, 0);
+  gl.enableVertexAttribArray(uv);  gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 16, 8);
+}
+function setU1f(prog, name, val) { const loc = gl.getUniformLocation(prog, name); if (loc !== null) gl.uniform1f(loc, val); }
+function fitSize(w,h,maxSide=900){ const ratio=Math.min(1,maxSide/Math.max(w,h)); return {width:Math.round(w*ratio),height:Math.round(h*ratio)}; }
+function uploadTex(source) {
+  if (srcTex) gl.deleteTexture(srcTex);
+  srcTex = gl.createTexture();
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  gl.bindTexture(gl.TEXTURE_2D, srcTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+}
+function getSettings() {
+  return {
+    style: currentStyle,
+    outline: outlineMode,
+    smooth: smoothMode,
+    scale: scaleMode,
+    flat: parseInt(document.getElementById('sl-flat').value) / 100,
+    steps: parseInt(document.getElementById('sl-steps').value),
+    edge: parseInt(document.getElementById('sl-edge').value) / 100,
+    grain: parseInt(document.getElementById('sl-grain').value) / 100,
+    warm: parseInt(document.getElementById('sl-warm').value) / 100,
+    sat: parseInt(document.getElementById('sl-sat').value) / 100,
+  };
+}
+function renderFromCurrentTexture(targetCanvas, w, h, settings) {
+  glCv.width = w; glCv.height = h; gl.viewport(0, 0, w, h);
+  const prog = PROGRAMS[PRESETS[settings.style].shader];
+  gl.useProgram(prog); bindQuad(prog);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, srcTex);
+  gl.uniform1i(gl.getUniformLocation(prog, 'u_tex'), 0);
+  setU1f(prog, 'u_flat', settings.flat);
+  setU1f(prog, 'u_steps', settings.steps);
+  setU1f(prog, 'u_edge', settings.edge);
+  setU1f(prog, 'u_grain', settings.grain);
+  setU1f(prog, 'u_warm', settings.warm);
+  setU1f(prog, 'u_sat', settings.sat);
+  setU1f(prog, 'u_outline', settings.outline);
+  setU1f(prog, 'u_smooth', settings.smooth);
+  const loc = gl.getUniformLocation(prog, 'u_res'); if (loc !== null) gl.uniform2f(loc, w, h);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  const pixels = new Uint8Array(w * h * 4);
+  gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+  targetCanvas.width = w; targetCanvas.height = h;
+  const ctx = targetCanvas.getContext('2d');
+  const id = ctx.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    const srcRow = (h - 1 - y) * w * 4;
+    id.data.set(pixels.subarray(srcRow, srcRow + w * 4), y * w * 4);
+  }
+  ctx.putImageData(id, 0, 0);
+}
+function renderMain() {
+  if (!srcTex) return;
+  const settings = getSettings();
+  outputW = imgW * settings.scale; outputH = imgH * settings.scale;
+  renderFromCurrentTexture(document.getElementById('dstCv'), outputW, outputH, settings);
+  document.getElementById('stamp').textContent = PRESETS[currentStyle].name;
+  document.getElementById('styleInfo').textContent = PRESETS[currentStyle].name;
+  document.getElementById('smoothInfo').textContent = '平滑: ' + (smoothMode === 0 ? 'OFF' : smoothMode === 1 ? 'LOW' : 'HIGH');
+  document.getElementById('scaleInfo').textContent = '倍率: ' + scaleMode + 'x';
+}
+function applyEffect() {
+  const prog = document.getElementById('prog');
+  const panel = document.getElementById('outPanel');
+  prog.style.width = '55%'; panel.classList.add('processing');
+  setTimeout(() => {
+    renderMain();
+    prog.style.width = '100%'; panel.classList.remove('processing');
+    setTimeout(() => prog.style.width = '0%', 300);
+  }, 60);
+}
+function loadImg(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const size = fitSize(img.width, img.height, 900);
+      imgW = size.width; imgH = size.height;
+      const src = document.getElementById('srcCv');
+      src.width = imgW; src.height = imgH;
+      src.getContext('2d').drawImage(img, 0, 0, imgW, imgH);
+      uploadTex(src);
+      document.getElementById('dz').style.display = 'none';
+      document.getElementById('resultWrap').classList.add('show');
+      document.getElementById('sizeInfo').textContent = `${img.width}×${img.height} → ${imgW}×${imgH}`;
+      applyEffect();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function updateParamDisplay() {
+  const fmt = (v) => (v/100).toFixed(2);
+  document.getElementById('v-flat').textContent  = fmt(parseInt(document.getElementById('sl-flat').value));
+  document.getElementById('v-steps').textContent = document.getElementById('sl-steps').value;
+  document.getElementById('v-edge').textContent  = fmt(parseInt(document.getElementById('sl-edge').value));
+  document.getElementById('v-grain').textContent = fmt(parseInt(document.getElementById('sl-grain').value));
+  document.getElementById('v-warm').textContent  = fmt(parseInt(document.getElementById('sl-warm').value));
+  document.getElementById('v-sat').textContent   = fmt(parseInt(document.getElementById('sl-sat').value));
+}
+function updateParamVisibility() {
+  const uses = PRESETS[currentStyle].uses;
+  ['flat','steps','edge','grain','warm','sat'].forEach(id => {
+    document.getElementById('param-' + id).style.display = uses.includes(id) ? 'flex' : 'none';
   });
-});
-
-// ── Scale ──
-document.querySelectorAll('.sc-btn').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('.sc-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
-  outScale=parseInt(btn.dataset.scale);document.getElementById('scaleInfo').textContent=outScale+'×';
-}));
-
-// ── Sliders ──
-[['sl-flat','v-flat',v=>(v/100).toFixed(2)],['sl-steps','v-steps',v=>v],['sl-edge','v-edge',v=>(v/100).toFixed(2)],['sl-grain','v-grain',v=>(v/100).toFixed(2)],['sl-warm','v-warm',v=>(v/100).toFixed(2)],['sl-sat','v-sat',v=>(v/100).toFixed(2)],['sl-smooth','v-smooth',v=>(v/100).toFixed(2)]].forEach(([id,vid,fmt])=>document.getElementById(id).addEventListener('input',e=>document.getElementById(vid).textContent=fmt(e.target.value)));
-
-// ── Apply / Export ──
-document.getElementById('btnApply').addEventListener('click',()=>{if(srcTex)applyEff();});
-document.getElementById('btnExport').addEventListener('click',()=>{
-  const base=document.getElementById('dstCv');if(!base.width)return;
-  const sc=outScale,ow=imgW*sc,oh=imgH*sc,exp=document.createElement('canvas');
-  exp.width=ow;exp.height=oh;const ctx=exp.getContext('2d');ctx.imageSmoothingEnabled=sc>1;ctx.imageSmoothingQuality='high';ctx.drawImage(base,0,0,ow,oh);
-  const a=document.createElement('a');a.href=exp.toDataURL('image/png');a.download=`mirage_${curStyle}_${sc}x_${Date.now()}.png`;a.click();
-});
-
-// ── Drop / Upload ──
-const dz=document.getElementById('dz');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);});
-dz.addEventListener('click',()=>document.getElementById('fi').click());
-document.getElementById('fi').addEventListener('change',e=>{if(e.target.files[0])loadImg(e.target.files[0]);});
-document.getElementById('btnReupload').addEventListener('click',()=>document.getElementById('reuploadFi').click());
-document.getElementById('reuploadFi').addEventListener('change',e=>{const f=e.target.files[0];if(f&&f.type.startsWith('image/'))loadImg(f);e.target.value='';});
-
-// ════════════════════════════════════════
-//  Saved Presets
-// ════════════════════════════════════════
-function getSnap(){const k=['flat','steps','edge','grain','warm','sat','smooth'];const d={};k.forEach(k2=>d[k2]=document.getElementById('sl-'+k2).value);return{...d,style:curStyle,outline:outMode,scale:outScale};}
-function applySnap(p){
-  curStyle=p.style;outMode=+p.outline;outScale=+p.scale||1;
-  document.querySelectorAll('.filter-card').forEach(c=>c.classList.toggle('active',c.dataset.style===p.style));
-  ['outlineOn','outlineOff','outlineHand'].forEach((id,i)=>document.getElementById(id).classList.toggle('active',i===(outMode===1?0:outMode===0?1:2)));
-  document.querySelectorAll('.sc-btn').forEach(b=>b.classList.toggle('active',+b.dataset.scale===outScale));
-  [['sl-flat','v-flat',v=>(v/100).toFixed(2)],['sl-steps','v-steps',v=>v],['sl-edge','v-edge',v=>(v/100).toFixed(2)],['sl-grain','v-grain',v=>(v/100).toFixed(2)],['sl-warm','v-warm',v=>(v/100).toFixed(2)],['sl-sat','v-sat',v=>(v/100).toFixed(2)],['sl-smooth','v-smooth',v=>(v/100).toFixed(2)]].forEach(([slId,vlId,fmt],i)=>{const keys=['flat','steps','edge','grain','warm','sat','smooth'];const v=p[keys[i]];if(v==null)return;document.getElementById(slId).value=v;document.getElementById(vlId).textContent=fmt(v);});
-  const grp=S2G[p.style]||'base';
-  document.querySelectorAll('.fcat-btn').forEach(b=>b.classList.toggle('active',b.dataset.fcat===grp));
-  ['base','inspo','extra'].forEach(cat=>document.getElementById('fcat-'+cat).style.display=(cat===grp)?'flex':'none');
-  if(srcTex)applyEff();
-  document.querySelectorAll('.side-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.side-panel').forEach(x=>x.classList.remove('active'));document.querySelector('[data-tab="adjust"]').classList.add('active');document.getElementById('tab-adjust').classList.add('active');
 }
-function ldSv(){try{return JSON.parse(localStorage.getItem('mirage_presets')||'[]');}catch{return[];}}
-function svSv(l){try{localStorage.setItem('mirage_presets',JSON.stringify(l));}catch{}}
-function rndrSL(){const list=ldSv(),cont=document.getElementById('savedList');cont.querySelectorAll('.saved-item').forEach(el=>el.remove());document.getElementById('savedEmpty').style.display=list.length?'none':'block';list.forEach((preset,idx)=>{const item=document.createElement('div');item.className='saved-item';item.innerHTML=`<div class="saved-item-name">${preset.name}</div><div class="saved-item-style">${NAMES[preset.params.style]||''}</div><span class="saved-item-del" data-idx="${idx}">×</span>`;item.addEventListener('click',e=>{if(e.target.classList.contains('saved-item-del'))return;applySnap(preset.params);});item.querySelector('.saved-item-del').addEventListener('click',()=>{const l=ldSv();l.splice(idx,1);svSv(l);rndrSL();});cont.appendChild(item);});}
-document.getElementById('btnSavePreset').addEventListener('click',()=>{const name=document.getElementById('presetNameInput').value.trim();if(!name){document.getElementById('presetNameInput').focus();return;}const list=ldSv();list.unshift({name,params:getSnap(),ts:Date.now()});if(list.length>30)list.length=30;svSv(list);document.getElementById('presetNameInput').value='';rndrSL();});
-document.getElementById('presetNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btnSavePreset').click();});
-rndrSL();
-
-// ════════════════════════════════════════
-//  Batch
-// ════════════════════════════════════════
-let bFiles=[],bRes=[],bRun=false;
-function r2b(dataUrl){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const MAX=900;let w=img.width,h=img.height;if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}const tmp=document.createElement('canvas');tmp.width=w;tmp.height=h;tmp.getContext('2d').drawImage(img,0,0,w,h);const pW=imgW,pH=imgH,pT=srcTex;imgW=w;imgH=h;upTex(tmp);const dst=document.createElement('canvas');renderTo(dst,w,h);imgW=pW;imgH=pH;srcTex=pT;if(pT)upTex(document.getElementById('srcCv'));const sc=outScale;if(sc===1){dst.toBlob(b=>res(b),'image/png');return;}const sc2=document.createElement('canvas');sc2.width=w*sc;sc2.height=h*sc;const ctx=sc2.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(dst,0,0,w*sc,h*sc);sc2.toBlob(b=>res(b),'image/png');};img.onerror=rej;img.src=dataUrl;});}
-function updBUI(){document.getElementById('batchCount').textContent=bFiles.length+' 张';const q=document.getElementById('batchQueue');q.innerHTML='';bFiles.forEach((item,idx)=>{const div=document.createElement('div');div.className='batch-item';div.id='bitem-'+idx;div.innerHTML=`<img class="batch-thumb" src="${item.dataUrl}"><span class="batch-name">${item.name}</span><span class="batch-status ${item.status}" id="bstat-${idx}">${{pending:'等待',running:'处理中',done:'完成',error:'错误'}[item.status]}</span>`;q.appendChild(div);});}
-function addBF(files){const arr=Array.from(files).filter(f=>f.type.startsWith('image/'));let ld=0;arr.forEach(file=>{const r=new FileReader();r.onload=e=>{bFiles.push({file,name:file.name,dataUrl:e.target.result,status:'pending',blob:null});ld++;if(ld===arr.length)updBUI();};r.readAsDataURL(file);});}
-const bDz=document.getElementById('batchDz');
-bDz.addEventListener('dragover',e=>{e.preventDefault();bDz.classList.add('over');});bDz.addEventListener('dragleave',()=>bDz.classList.remove('over'));bDz.addEventListener('drop',e=>{e.preventDefault();bDz.classList.remove('over');addBF(e.dataTransfer.files);});
-document.getElementById('batchFi').addEventListener('change',e=>{addBF(e.target.files);e.target.value='';});
-document.getElementById('batchClear').addEventListener('click',()=>{if(bRun)return;bFiles=[];bRes=[];updBUI();document.getElementById('batchProgBar').style.width='0%';const dl=document.getElementById('btnBatchDownload');dl.disabled=true;dl.style.opacity='.4';});
-document.getElementById('btnBatchRun').addEventListener('click',async()=>{if(bRun||bFiles.length===0)return;bRun=true;bRes=[];const tot=bFiles.length,bar=document.getElementById('batchProgBar');for(let i=0;i<tot;i++){const item=bFiles[i];item.status='running';const el=document.getElementById('bstat-'+i);if(el){el.textContent='处理中';el.className='batch-status running';}try{const blob=await r2b(item.dataUrl);item.status='done';item.blob=blob;const sfx=outScale>1?`_${outScale}x`:'';bRes.push({name:item.name.replace(/\.[^.]+$/,'')+`_styled${sfx}.png`,blob});if(el){el.textContent='完成';el.className='batch-status done';}}catch(err){item.status='error';if(el){el.textContent='错误';el.className='batch-status error';}}bar.style.width=((i+1)/tot*100)+'%';await new Promise(r=>setTimeout(r,30));}if(srcTex){upTex(document.getElementById('srcCv'));render();}bRun=false;if(bRes.length>0){const dl=document.getElementById('btnBatchDownload');dl.disabled=false;dl.style.opacity='1';}});
-document.getElementById('btnBatchDownload').addEventListener('click',async()=>{if(bRes.length===0)return;if(typeof JSZip!=='undefined'){const zip=new JSZip();bRes.forEach(r=>zip.file(r.name,r.blob));const content=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download=`mirage_batch_${Date.now()}.zip`;a.click();}else{for(const r of bRes){const a=document.createElement('a');a.href=URL.createObjectURL(r.blob);a.download=r.name;a.click();await new Promise(res=>setTimeout(res,200));}}});
+function renderPresetList() {
+  const container = document.getElementById('presetList');
+  const groups = ['基础滤镜','灵感滤镜'];
+  container.innerHTML = '';
+  groups.forEach(group => {
+    const sub = document.createElement('div'); sub.className = 'preset-subhead'; sub.textContent = group; container.appendChild(sub);
+    Object.entries(PRESETS).forEach(([key, item]) => {
+      if (item.group !== group) return;
+      const card = document.createElement('div');
+      card.className = 'preset-card' + (currentStyle === key ? ' active' : '');
+      card.dataset.style = key;
+      card.innerHTML = `<span class="preset-icon">${item.icon}</span><div class="preset-info"><div class="preset-name">${item.name}</div><div class="preset-desc">${item.desc}</div></div>`;
+      card.addEventListener('click', () => {
+        currentStyle = key;
+        renderPresetList(); updateParamVisibility(); if (srcTex) applyEffect();
+      });
+      container.appendChild(card);
+    });
+  });
+}
+function renderToggle(containerId, items, activeId, onClick) {
+  const el = document.getElementById(containerId); el.innerHTML = '';
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'toggle-btn' + (item.id === activeId ? ' active' : '');
+    btn.textContent = item.label;
+    btn.addEventListener('click', () => onClick(item.id));
+    el.appendChild(btn);
+  });
+}
+function rerenderToggles() {
+  renderToggle('outlineToggle', OUTLINES, outlineMode, (id) => { outlineMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
+  renderToggle('smoothToggle', SMOOTHS, smoothMode, (id) => { smoothMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
+  renderToggle('scaleToggle', SCALES, scaleMode, (id) => { scaleMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
+}
+function loadSavedPresets() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
+function saveSavedPresets(list) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {} }
+function applySaved(p) {
+  currentStyle = p.style; outlineMode = p.outline; smoothMode = p.smooth; scaleMode = p.scale;
+  document.getElementById('sl-flat').value = Math.round(p.flat * 100);
+  document.getElementById('sl-steps').value = p.steps;
+  document.getElementById('sl-edge').value = Math.round(p.edge * 100);
+  document.getElementById('sl-grain').value = Math.round(p.grain * 100);
+  document.getElementById('sl-warm').value = Math.round(p.warm * 100);
+  document.getElementById('sl-sat').value = Math.round(p.sat * 100);
+  updateParamDisplay(); renderPresetList(); rerenderToggles(); updateParamVisibility(); if (srcTex) applyEffect();
+}
+function renderSavedList() {
+  const list = loadSavedPresets();
+  const container = document.getElementById('savedList');
+  const empty = document.getElementById('savedEmpty');
+  container.querySelectorAll('.saved-item').forEach(el => el.remove());
+  empty.style.display = list.length ? 'none' : 'block';
+  list.forEach((preset, idx) => {
+    const item = document.createElement('div'); item.className = 'saved-item';
+    item.innerHTML = `<div class="saved-item-name">${preset.name}</div><div class="saved-item-style">${PRESETS[preset.params.style].name}</div><span class="saved-item-del" data-idx="${idx}">×</span>`;
+    item.addEventListener('click', (e) => { if (e.target.classList.contains('saved-item-del')) return; applySaved(preset.params); switchTab('adjust'); });
+    item.querySelector('.saved-item-del').addEventListener('click', () => { const l = loadSavedPresets(); l.splice(idx, 1); saveSavedPresets(l); renderSavedList(); });
+    container.appendChild(item);
+  });
+}
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+['flat','steps','edge','grain','warm','sat'].forEach(id => document.getElementById('sl-' + id).addEventListener('input', updateParamDisplay));
+document.getElementById('btnApply').addEventListener('click', () => { if (srcTex) applyEffect(); });
+document.getElementById('btnExport').addEventListener('click', () => {
+  const cv = document.getElementById('dstCv'); if (!cv.width) return;
+  const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `mirage_${currentStyle}_${Date.now()}.png`; a.click();
+});
+const dz = document.getElementById('dz');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) loadImg(f); });
+document.getElementById('fi').addEventListener('change', e => { if (e.target.files[0]) loadImg(e.target.files[0]); e.target.value = ''; });
+document.getElementById('btnReupload').addEventListener('click', () => document.getElementById('reuploadFi').click());
+document.getElementById('reuploadFi').addEventListener('change', e => { const f = e.target.files[0]; if (f && f.type.startsWith('image/')) loadImg(f); e.target.value = ''; });
+document.getElementById('btnSavePreset').addEventListener('click', () => {
+  const name = document.getElementById('presetNameInput').value.trim(); if (!name) return;
+  const list = loadSavedPresets(); list.unshift({ name, params: getSettings(), ts: Date.now() }); if (list.length > 30) list.length = 30; saveSavedPresets(list);
+  document.getElementById('presetNameInput').value = ''; renderSavedList();
+});
+document.getElementById('presetNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btnSavePreset').click(); });
+function addBatchFiles(files) {
+  const arr = Array.from(files).filter(f => f.type.startsWith('image/')); if (!arr.length) return;
+  let loaded = 0;
+  arr.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      batchFiles.push({ file, name: file.name, dataUrl: e.target.result, status:'pending', blob:null });
+      loaded++; if (loaded === arr.length) updateBatchUI();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function updateBatchUI() {
+  document.getElementById('batchCount').textContent = batchFiles.length + ' 张';
+  const queue = document.getElementById('batchQueue'); queue.innerHTML = '';
+  batchFiles.forEach((item, idx) => {
+    const div = document.createElement('div'); div.className = 'batch-item';
+    div.innerHTML = `<img class="batch-thumb" src="${item.dataUrl}"><span class="batch-name">${item.name}</span><span class="batch-status ${item.status}" id="bstat-${idx}">${{pending:'等待',running:'处理中',done:'完成',error:'错误'}[item.status]}</span>`;
+    queue.appendChild(div);
+  });
+}
+async function renderFileToBlob(dataUrl, settings) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = fitSize(img.width, img.height, 900);
+      const tmp = document.createElement('canvas'); tmp.width = size.width; tmp.height = size.height;
+      tmp.getContext('2d').drawImage(img, 0, 0, size.width, size.height);
+      const prevTex = srcTex; const prevW = imgW; const prevH = imgH;
+      imgW = size.width; imgH = size.height; uploadTex(tmp);
+      const out = document.createElement('canvas');
+      renderFromCurrentTexture(out, imgW * settings.scale, imgH * settings.scale, settings);
+      imgW = prevW; imgH = prevH; srcTex = prevTex;
+      out.toBlob(blob => resolve(blob), 'image/png');
+    };
+    img.onerror = reject; img.src = dataUrl;
+  });
+}
+const batchDz = document.getElementById('batchDz');
+batchDz.addEventListener('dragover', e => { e.preventDefault(); batchDz.classList.add('over'); });
+batchDz.addEventListener('dragleave', () => batchDz.classList.remove('over'));
+batchDz.addEventListener('drop', e => { e.preventDefault(); batchDz.classList.remove('over'); addBatchFiles(e.dataTransfer.files); });
+document.getElementById('batchFi').addEventListener('change', e => { addBatchFiles(e.target.files); e.target.value = ''; });
+document.getElementById('batchClear').addEventListener('click', () => {
+  if (batchRunning) return; batchFiles = []; batchResults = []; updateBatchUI(); document.getElementById('batchProgBar').style.width = '0%';
+  const dlBtn = document.getElementById('btnBatchDownload'); dlBtn.disabled = true; dlBtn.style.opacity = '0.4';
+});
+document.getElementById('btnBatchRun').addEventListener('click', async () => {
+  if (batchRunning || batchFiles.length === 0) return;
+  batchRunning = true; batchResults = [];
+  const total = batchFiles.length; const progBar = document.getElementById('batchProgBar'); const settings = getSettings();
+  for (let i = 0; i < total; i++) {
+    const item = batchFiles[i]; item.status = 'running'; updateBatchUI();
+    try {
+      const blob = await renderFileToBlob(item.dataUrl, settings); item.status = 'done'; item.blob = blob; batchResults.push({ name: item.name.replace(/\.[^.]+$/, '') + '_styled.png', blob });
+    } catch(err) { item.status = 'error'; }
+    updateBatchUI(); progBar.style.width = ((i + 1) / total * 100) + '%'; await new Promise(r => setTimeout(r, 30));
+  }
+  batchRunning = false;
+  const dlBtn = document.getElementById('btnBatchDownload'); if (batchResults.length > 0) { dlBtn.disabled = false; dlBtn.style.opacity = '1'; }
+});
+document.getElementById('btnBatchDownload').addEventListener('click', async () => {
+  if (batchResults.length === 0) return;
+  if (typeof JSZip !== 'undefined') {
+    const zip = new JSZip(); batchResults.forEach(r => zip.file(r.name, r.blob));
+    const content = await zip.generateAsync({ type: 'blob' }); const a = document.createElement('a'); a.href = URL.createObjectURL(content); a.download = `mirage_batch_${Date.now()}.zip`; a.click();
+  } else {
+    for (const r of batchResults) { const a = document.createElement('a'); a.href = URL.createObjectURL(r.blob); a.download = r.name; a.click(); await new Promise(res => setTimeout(res, 200)); }
+  }
+});
+renderPresetList(); rerenderToggles(); updateParamDisplay(); updateParamVisibility(); renderSavedList();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </body>
 </html>
