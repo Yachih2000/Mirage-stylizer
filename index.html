@@ -128,8 +128,8 @@ header::after {
   inset: 0;
   display: none;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px 14px;
   overflow-y: auto;
 }
 .tab-panel.active { display: flex; }
@@ -142,29 +142,31 @@ header::after {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .sec-head::before {
   content: '';
   width: 3px;
-  height: 12px;
+  height: 10px;
   background: var(--rust);
 }
-.preset-list { display: flex; flex-direction: column; gap: 6px; }
+.preset-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .preset-subhead {
   font-family: 'Space Mono', monospace;
   font-size: 0.56rem;
   color: var(--muted);
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  margin: 4px 0 6px;
+  margin: 2px 0 4px;
   opacity: 0.9;
+  grid-column: 1 / -1;
 }
 .preset-card {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 7px;
+  padding: 7px 8px;
   border: 1px solid var(--border);
   background: var(--paper);
   cursor: pointer;
@@ -184,17 +186,20 @@ header::after {
 .preset-card:hover { background: #ede6d8; }
 .preset-card.active { background: #ede6d8; border-color: var(--rust); }
 .preset-card.active::after { transform: scaleY(1); }
-.preset-icon { font-size: 1.2rem; flex-shrink: 0; }
+.preset-icon { font-size: 1.1rem; flex-shrink: 0; }
 .preset-info { flex: 1; min-width: 0; }
 .preset-name {
   font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .preset-desc {
-  font-size: 0.62rem;
+  font-size: 0.54rem;
   color: var(--muted);
   margin-top: 1px;
   white-space: nowrap;
@@ -211,7 +216,7 @@ header::after {
 }
 .toggle-btn {
   flex: 1;
-  padding: 8px 6px;
+  padding: 6px 6px;
   text-align: center;
   font-family: 'Space Mono', monospace;
   font-size: 0.58rem;
@@ -224,32 +229,32 @@ header::after {
 }
 .toggle-btn + .toggle-btn { border-left: 1px solid var(--border); }
 .toggle-btn.active { background: var(--ink); color: var(--paper); }
-.param-stack { display: flex; flex-direction: column; gap: 12px; }
+.param-stack { display: flex; flex-direction: column; gap: 11px; }
 .param { display: flex; flex-direction: column; gap: 5px; }
 .param-hd { display: flex; justify-content: space-between; }
 .param-lbl {
   font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   letter-spacing: 0.1em;
   color: var(--muted);
 }
 .param-val {
   font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   color: var(--rust);
   font-weight: 700;
 }
 input[type=range] {
   -webkit-appearance: none;
   width: 100%;
-  height: 2px;
+  height: 3px;
   background: var(--border);
   outline: none;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   background: var(--rust);
   border-radius: 0;
   cursor: pointer;
@@ -260,9 +265,9 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
 .btns { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 .btn {
   font-family: 'Space Mono', monospace;
-  font-size: 0.68rem;
+  font-size: 0.76rem;
   letter-spacing: 0.14em;
-  padding: 11px 16px;
+  padding: 14px 16px;
   cursor: pointer;
   border: none;
   text-align: center;
@@ -546,8 +551,8 @@ input[type=file] { display: none; }
 <body>
 <header>
   <div class="logo-wrap">
-    <span class="logo">Mirage</span>
-    <span class="logo-tag">插画风格化 3.0 C</span>
+    <span class="logo">Mirage-Stylizer</span>
+    <span class="logo-tag">插画风格化</span>
   </div>
   <div class="header-right">FOUNDATION + INSPIRATION · SMOOTH SAFE · TAB STABLE</div>
 </header>
@@ -571,10 +576,6 @@ input[type=file] { display: none; }
         <div>
           <div class="sec-head">平滑</div>
           <div class="smooth-toggle" id="smoothToggle"></div>
-        </div>
-        <div>
-          <div class="sec-head">输出倍率</div>
-          <div class="scale-toggle" id="scaleToggle"></div>
         </div>
         <div>
           <div class="sec-head">参数微调</div>
@@ -606,7 +607,6 @@ input[type=file] { display: none; }
           </div>
         </div>
         <div class="btns">
-          <button class="btn btn-ink" id="btnApply">▶ 应用效果</button>
           <button class="btn btn-outline" id="btnExport">↓ 导出 PNG</button>
         </div>
       </div>
@@ -631,7 +631,7 @@ input[type=file] { display: none; }
           <div class="sec-head">批量导入</div>
           <div class="batch-dropzone" id="batchDz">
             <div class="batch-dz-text">拖入多张图片，或 <span onclick="document.getElementById('batchFi').click()">点击选择</span></div>
-            <div class="batch-dz-hint">使用当前【调整】里的滤镜、平滑、倍率和参数</div>
+            <div class="batch-dz-hint">使用当前【调整】里的滤镜、平滑和参数</div>
             <input type="file" id="batchFi" accept="image/*" multiple>
           </div>
         </div>
@@ -662,7 +662,6 @@ input[type=file] { display: none; }
         <div class="status-item"><span class="status-dot"></span><span id="sizeInfo">—</span></div>
         <div class="status-item"><span style="color:var(--rust)">◆</span><span id="styleInfo">COMIC FLAT</span></div>
         <div class="status-item"><span style="color:var(--teal)">●</span><span id="smoothInfo">平滑: OFF</span></div>
-        <div class="status-item"><span style="color:var(--ochre)">▲</span><span id="scaleInfo">倍率: 1x</span></div>
         <button class="reupload-btn" id="btnReupload">↺ 换图</button>
         <input type="file" id="reuploadFi" accept="image/*">
       </div>
@@ -711,17 +710,12 @@ const SMOOTHS = [
   { id:1, label:'LOW' },
   { id:2, label:'HIGH' }
 ];
-const SCALES = [
-  { id:1, label:'1x' },
-  { id:2, label:'2x' },
-  { id:3, label:'3x' }
-];
+
 const STORAGE_KEY = 'mirage_complete_c_presets';
 let currentStyle = 'comic';
 let outlineMode = 1;
 let smoothMode = 0;
-let scaleMode = 1;
-let srcTex = null, imgW = 0, imgH = 0, outputW = 0, outputH = 0;
+let srcTex = null, imgW = 0, imgH = 0;
 let batchFiles = [], batchResults = [], batchRunning = false;
 const glCv = document.getElementById('glCv');
 const gl = glCv.getContext('webgl2') || glCv.getContext('webgl');
@@ -1042,7 +1036,6 @@ function getSettings() {
     style: currentStyle,
     outline: outlineMode,
     smooth: smoothMode,
-    scale: scaleMode,
     flat: parseInt(document.getElementById('sl-flat').value) / 100,
     steps: parseInt(document.getElementById('sl-steps').value),
     edge: parseInt(document.getElementById('sl-edge').value) / 100,
@@ -1081,12 +1074,10 @@ function renderFromCurrentTexture(targetCanvas, w, h, settings) {
 function renderMain() {
   if (!srcTex) return;
   const settings = getSettings();
-  outputW = imgW * settings.scale; outputH = imgH * settings.scale;
-  renderFromCurrentTexture(document.getElementById('dstCv'), outputW, outputH, settings);
+  renderFromCurrentTexture(document.getElementById('dstCv'), imgW, imgH, settings);
   document.getElementById('stamp').textContent = PRESETS[currentStyle].name;
   document.getElementById('styleInfo').textContent = PRESETS[currentStyle].name;
   document.getElementById('smoothInfo').textContent = '平滑: ' + (smoothMode === 0 ? 'OFF' : smoothMode === 1 ? 'LOW' : 'HIGH');
-  document.getElementById('scaleInfo').textContent = '倍率: ' + scaleMode + 'x';
 }
 function applyEffect() {
   const prog = document.getElementById('prog');
@@ -1166,12 +1157,11 @@ function renderToggle(containerId, items, activeId, onClick) {
 function rerenderToggles() {
   renderToggle('outlineToggle', OUTLINES, outlineMode, (id) => { outlineMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
   renderToggle('smoothToggle', SMOOTHS, smoothMode, (id) => { smoothMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
-  renderToggle('scaleToggle', SCALES, scaleMode, (id) => { scaleMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
 }
 function loadSavedPresets() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
 function saveSavedPresets(list) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {} }
 function applySaved(p) {
-  currentStyle = p.style; outlineMode = p.outline; smoothMode = p.smooth; scaleMode = p.scale;
+  currentStyle = p.style; outlineMode = p.outline; smoothMode = p.smooth;
   document.getElementById('sl-flat').value = Math.round(p.flat * 100);
   document.getElementById('sl-steps').value = p.steps;
   document.getElementById('sl-edge').value = Math.round(p.edge * 100);
@@ -1199,8 +1189,11 @@ function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
 }
 document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
-['flat','steps','edge','grain','warm','sat'].forEach(id => document.getElementById('sl-' + id).addEventListener('input', updateParamDisplay));
-document.getElementById('btnApply').addEventListener('click', () => { if (srcTex) applyEffect(); });
+let _applyTimer = null;
+function applyDebounced() { clearTimeout(_applyTimer); _applyTimer = setTimeout(() => { if (srcTex) applyEffect(); }, 80); }
+['flat','steps','edge','grain','warm','sat'].forEach(id => {
+  document.getElementById('sl-' + id).addEventListener('input', () => { updateParamDisplay(); applyDebounced(); });
+});
 document.getElementById('btnExport').addEventListener('click', () => {
   const cv = document.getElementById('dstCv'); if (!cv.width) return;
   const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `mirage_${currentStyle}_${Date.now()}.png`; a.click();
@@ -1249,7 +1242,7 @@ async function renderFileToBlob(dataUrl, settings) {
       const prevTex = srcTex; const prevW = imgW; const prevH = imgH;
       imgW = size.width; imgH = size.height; uploadTex(tmp);
       const out = document.createElement('canvas');
-      renderFromCurrentTexture(out, imgW * settings.scale, imgH * settings.scale, settings);
+      renderFromCurrentTexture(out, imgW, imgH, settings);
       imgW = prevW; imgH = prevH; srcTex = prevTex;
       out.toBlob(blob => resolve(blob), 'image/png');
     };
