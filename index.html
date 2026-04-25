@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MIRAGE · 插画风格化工坊 C</title>
+<title>Mirage-Stylizer</title>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -74,6 +74,28 @@ header::after {
   color: #6a6050;
   letter-spacing: 0.12em;
   text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: var(--paper);
+  opacity: 0.72;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.github-link:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.github-link svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 .layout {
   display: grid;
@@ -487,7 +509,12 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
 .batch-dz-text { font-size: 0.72rem; color: var(--muted); }
 .batch-dz-text span { color: var(--rust); cursor: pointer; text-decoration: underline; }
 .batch-dz-hint { font-size: 0.58rem; color: var(--border); font-family: 'Space Mono', monospace; margin-top: 4px; letter-spacing: 0.08em; }
-.batch-queue { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; flex-shrink: 0; }
+.batch-queue { display: flex; flex-direction: column; gap: 4px; max-height: none; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+/* 批处理列表修复：让队列吃掉中间空白区域，而不是只显示 240px 后把空间浪费掉 */
+#tab-batch { overflow: hidden; }
+#tab-batch > div:nth-child(1) { flex: 0 0 auto; }
+#tab-batch > div:nth-child(2) { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+#tab-batch > .btns { margin-top: 8px !important; flex: 0 0 auto; padding-top: 8px; }
 .batch-item {
   display: flex;
   align-items: center;
@@ -534,6 +561,106 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
   line-height: 1.7;
   color: var(--muted);
 }
+/* ── Filter sub-tabs ── */
+.filter-tabs {
+  display: flex;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 7px;
+}
+.filter-tab {
+  flex: 1; padding: 5px 4px;
+  font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em;
+  text-align: center; cursor: pointer; color: var(--muted);
+  background: var(--paper); border: none; transition: all 0.13s;
+}
+.filter-tab + .filter-tab { border-left: 1px solid var(--border); }
+.filter-tab.active { background: var(--ink); color: var(--paper); }
+
+/* ── Element simulation ── */
+.elem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+}
+.elem-chip {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  overflow: hidden;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+.elem-chip.active { border-color: var(--rust); }
+.elem-chip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  gap: 4px;
+}
+.elem-chip-name {
+  font-size: 0.7rem;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.elem-chip.active .elem-chip-name { color: var(--rust); }
+.elem-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.elem-chip.active .elem-dot { background: var(--rust); }
+/* Expanded params — spans full width via JS wrapper */
+.elem-expand {
+  display: none;
+  grid-column: 1 / -1;
+  border: 1px solid var(--rust);
+  background: var(--paper);
+  padding: 10px 12px;
+  flex-direction: column;
+  gap: 8px;
+}
+.elem-expand.open { display: flex; }
+.elem-expand-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  color: var(--rust);
+  margin-bottom: 2px;
+}
+.elem-param-row { display: flex; flex-direction: column; gap: 3px; }
+.elem-param-hd { display: flex; justify-content: space-between; }
+.elem-param-lbl { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.07em; color: var(--muted); }
+.elem-param-val { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--rust); font-weight: 700; }
+.elem-choice-row { display: flex; flex-direction: column; gap: 5px; }
+.elem-choice-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.elem-choice-btn {
+  border: 1px solid var(--border);
+  background: var(--paper2);
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.54rem;
+  letter-spacing: 0.05em;
+  padding: 6px 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.elem-choice-btn.active {
+  border-color: var(--rust);
+  background: var(--ink);
+  color: var(--paper);
+}
+
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); }
@@ -541,6 +668,16 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 input[type=file] { display: none; }
 .hidden { display:none !important; }
+
+/* 修复离屏画布导致的不分配缓存bug */
+.gl-canvas-hidden {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @media (max-width: 1000px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar { min-height: auto; }
@@ -552,9 +689,16 @@ input[type=file] { display: none; }
 <header>
   <div class="logo-wrap">
     <span class="logo">Mirage-Stylizer</span>
-    <span class="logo-tag">插画风格化</span>
+    <span class="logo-tag">图像风格化</span>
   </div>
-  <div class="header-right">FOUNDATION + INSPIRATION · SMOOTH SAFE · TAB STABLE</div>
+<div class="header-right">
+    <span>DESIGN BY YANCY</span>
+    <a class="github-link" href="https://github.com/Yachih2000/Mirage-stylizer" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0.5C5.65 0.5 0.5 5.65 0.5 12c0 5.08 3.29 9.39 7.86 10.91 0.58 0.11 0.79-0.25 0.79-0.56 0-0.28-0.01-1.02-0.02-2-3.2 0.7-3.88-1.54-3.88-1.54-0.52-1.33-1.28-1.68-1.28-1.68-1.05-0.72 0.08-0.7 0.08-0.7 1.16 0.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36 0.96 0.1-0.75 0.4-1.25 0.73-1.54-2.55-0.29-5.23-1.27-5.23-5.67 0-1.25 0.45-2.28 1.18-3.08-0.12-0.29-0.51-1.46 0.11-3.04 0 0 0.97-0.31 3.16 1.18A10.95 10.95 0 0 1 12 6.05c0.98 0 1.97 0.13 2.89 0.38 2.19-1.49 3.15-1.18 3.15-1.18 0.63 1.58 0.23 2.75 0.11 3.04 0.74 0.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.66 0.41 0.35 0.78 1.06 0.78 2.13 0 1.54-0.01 2.78-0.01 3.16 0 0.31 0.21 0.67 0.8 0.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35 0.5 12 0.5Z"/>
+      </svg>
+    </a>
+  </div>
 </header>
 <div class="layout">
   <aside class="sidebar">
@@ -565,16 +709,25 @@ input[type=file] { display: none; }
     </div>
     <div class="tab-panels">
       <div class="tab-panel active" id="tab-adjust">
+        <!-- Filter group sub-tabs -->
         <div>
-          <div class="sec-head">风格预设</div>
+          <div class="sec-head">风格滤镜</div>
+          <div class="filter-tabs">
+            <button class="filter-tab active" data-fgroup="基础滤镜">基础</button>
+            <button class="filter-tab" data-fgroup="灵感滤镜">灵感</button>
+          </div>
           <div class="preset-list" id="presetList"></div>
+        </div>
+        <div>
+          <div class="sec-head">图像缩放</div>
+          <div class="outline-toggle" id="qualityToggle"></div>
         </div>
         <div>
           <div class="sec-head">描边模式</div>
           <div class="outline-toggle" id="outlineToggle"></div>
         </div>
         <div>
-          <div class="sec-head">平滑</div>
+          <div class="sec-head">平滑效果</div>
           <div class="smooth-toggle" id="smoothToggle"></div>
         </div>
         <div>
@@ -593,11 +746,11 @@ input[type=file] { display: none; }
               <input type="range" min="0" max="100" value="65" id="sl-edge">
             </div>
             <div class="param" id="param-grain">
-              <div class="param-hd"><span class="param-lbl">复古颗粒</span><span class="param-val" id="v-grain">0.40</span></div>
+              <div class="param-hd"><span class="param-lbl">噪点颗粒</span><span class="param-val" id="v-grain">0.40</span></div>
               <input type="range" min="0" max="100" value="40" id="sl-grain">
             </div>
             <div class="param" id="param-warm">
-              <div class="param-hd"><span class="param-lbl">暖调偏移</span><span class="param-val" id="v-warm">0.30</span></div>
+              <div class="param-hd"><span class="param-lbl">冷暖偏移</span><span class="param-val" id="v-warm">0.30</span></div>
               <input type="range" min="0" max="100" value="30" id="sl-warm">
             </div>
             <div class="param" id="param-sat">
@@ -606,8 +759,13 @@ input[type=file] { display: none; }
             </div>
           </div>
         </div>
+        <!-- Element simulation -->
+        <div>
+          <div class="sec-head">附加元素</div>
+          <div class="elem-grid" id="elemList"></div>
+        </div>
         <div class="btns">
-          <button class="btn btn-outline" id="btnExport">↓ 导出 PNG</button>
+          <button class="btn btn-outline" id="btnExport">↓ 导出JPG</button>
         </div>
       </div>
       <div class="tab-panel" id="tab-saved">
@@ -630,8 +788,8 @@ input[type=file] { display: none; }
         <div>
           <div class="sec-head">批量导入</div>
           <div class="batch-dropzone" id="batchDz">
-            <div class="batch-dz-text">拖入多张图片，或 <span onclick="document.getElementById('batchFi').click()">点击选择</span></div>
-            <div class="batch-dz-hint">使用当前【调整】里的滤镜、平滑和参数</div>
+            <div class="batch-dz-text">拖入多张图片，或 <span>点击选择</span></div>
+            <div class="batch-dz-hint">使用当前【调整】里的设置内容</div>
             <input type="file" id="batchFi" accept="image/*" multiple>
           </div>
         </div>
@@ -654,7 +812,7 @@ input[type=file] { display: none; }
     <div class="dropzone" id="dz" onclick="document.getElementById('fi').click()">
       <div class="dz-icon">⬡</div>
       <div class="dz-text">拖放图片到此处，或 <span>点击上传</span></div>
-      <div class="dz-hint">JPG · PNG · WEBP · 支持多次替换</div>
+      <div class="dz-hint">JPG · PNG · WEBP</div>
       <input type="file" id="fi" accept="image/*">
     </div>
     <div class="result-wrap" id="resultWrap">
@@ -662,12 +820,12 @@ input[type=file] { display: none; }
         <div class="status-item"><span class="status-dot"></span><span id="sizeInfo">—</span></div>
         <div class="status-item"><span style="color:var(--rust)">◆</span><span id="styleInfo">COMIC FLAT</span></div>
         <div class="status-item"><span style="color:var(--teal)">●</span><span id="smoothInfo">平滑: OFF</span></div>
-        <button class="reupload-btn" id="btnReupload">↺ 换图</button>
+        <button class="reupload-btn" id="btnReupload">↺ 换一张</button>
         <input type="file" id="reuploadFi" accept="image/*">
       </div>
       <div class="compare-row">
         <div class="cv-panel">
-          <div class="cv-label"><span class="pip" style="color:var(--muted)"></span>ORIGINAL · 原图</div>
+          <div class="cv-label" id="srcLbl"><span class="pip" style="color:var(--muted)"></span>ORIGINAL · 原图</div>
           <div class="cv-box"><canvas id="srcCv"></canvas></div>
         </div>
         <div class="cv-panel" id="outPanel">
@@ -682,44 +840,64 @@ input[type=file] { display: none; }
     </div>
   </main>
 </div>
-<canvas id="glCv" style="display:none"></canvas>
+<canvas id="glCv" class="gl-canvas-hidden"></canvas>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 const PRESETS = {
-  comic:      { group:'基础滤镜', icon:'🎌', name:'COMIC FLAT',  desc:'强色块·减渐变·硬边界', shader:'comic', uses:['flat','steps','edge','grain','warm','sat'] },
-  retroprint: { group:'基础滤镜', icon:'📺', name:'RETRO PRINT', desc:'老印刷·偏暖·网点颗粒', shader:'retroprint', uses:['flat','steps','edge','grain','warm','sat'] },
-  gouache:    { group:'基础滤镜', icon:'🖌️', name:'GOUACHE',     desc:'水粉体积·Kuwahara油画', shader:'gouache', uses:['flat','steps','edge','grain','warm','sat'] },
-  woodblock:  { group:'基础滤镜', icon:'🪵', name:'WOODBLOCK',   desc:'木刻版画·高对比·粗粒', shader:'woodblock', uses:['flat','steps','edge','grain','warm','sat'] },
-  screen:     { group:'基础滤镜', icon:'📋', name:'SCREEN INK',  desc:'丝网印刷·CMY叠色错位', shader:'screen', uses:['flat','steps','edge','grain','warm','sat'] },
-  cel:        { group:'基础滤镜', icon:'✏️', name:'CEL ANIME',   desc:'赛璐璐·HSV量化·厚线', shader:'cel', uses:['flat','steps','edge','grain','warm','sat'] },
-  flat:       { group:'灵感滤镜', icon:'⬜', name:'FLAT',        desc:'更直接的扁平化压缩', shader:'flat', uses:['flat','steps','edge','grain','warm','sat'] },
-  retro:      { group:'灵感滤镜', icon:'📻', name:'RETRO',       desc:'旧屏幕·暖偏色·轻噪点', shader:'retro', uses:['flat','steps','edge','grain','warm','sat'] },
-  kuwahara:   { group:'灵感滤镜', icon:'🎨', name:'KUWAHARA',    desc:'油画块面·保大形', shader:'kuwahara', uses:['flat','steps','edge','grain','warm','sat'] },
-  pixel:      { group:'灵感滤镜', icon:'👾', name:'PIXEL ART',   desc:'像素格·有限色', shader:'pixel', uses:['flat','steps','edge','grain','warm','sat'] },
-  neon:       { group:'灵感滤镜', icon:'🌆', name:'NEON NOIR',   desc:'霓虹高亮·边缘发光', shader:'neon', uses:['flat','steps','edge','grain','warm','sat'] },
-  watercolor: { group:'灵感滤镜', icon:'💧', name:'WATERCOLOR',  desc:'水彩晕染·边缘柔和', shader:'watercolor', uses:['flat','steps','edge','grain','warm','sat'] },
-  risograph:  { group:'灵感滤镜', icon:'🖨️', name:'RISOGRAPH',   desc:'印刷叠色·纸张颗粒', shader:'risograph', uses:['flat','steps','edge','grain','warm','sat'] },
+  comic:      { group:'基础滤镜', icon:'🎌', name:'COMIC FLAT',  desc:'色块·渐变·边界', shader:'comic', uses:['flat','steps','edge','grain','warm','sat'] },
+  polaroid:   { group:'基础滤镜', icon:'📸', name:'POLAROID', desc:'高光·对比·偏移', shader:'polaroid', uses:['flat','steps','edge','grain','warm','sat'] },
+  gouache:    { group:'基础滤镜', icon:'🖌️', name:'GOUACHE',     desc:'水粉·体积·油画', shader:'gouache', uses:['flat','steps','edge','grain','warm','sat'] },
+  woodblock:  { group:'基础滤镜', icon:'🪵', name:'WOODBLOCK',   desc:'木刻·版画·粗粒', shader:'woodblock', uses:['flat','steps','edge','grain','warm','sat'] },
+  screen:     { group:'基础滤镜', icon:'📋', name:'SCREEN INK',  desc:'丝网·印刷·叠色', shader:'screen', uses:['flat','steps','edge','grain','warm','sat'] },
+  cel:        { group:'基础滤镜', icon:'✏️', name:'CEL ANIME',   desc:'平涂·色面·厚线', shader:'cel', uses:['flat','steps','edge','grain','warm','sat'] },
+  flat:       { group:'灵感滤镜', icon:'📄', name:'FLAT',        desc:'扁平·简洁·块状', shader:'flat', uses:['flat','steps','edge','grain','warm','sat'] },
+  retro:      { group:'灵感滤镜', icon:'📻', name:'RETRO',       desc:'屏幕·偏色·噪点', shader:'retro', uses:['flat','steps','edge','grain','warm','sat'] },
+  kuwahara:   { group:'灵感滤镜', icon:'🎨', name:'KUWAHARA',    desc:'油画·块面·体积', shader:'kuwahara', uses:['flat','steps','edge','grain','warm','sat'] },
+  pixel:      { group:'灵感滤镜', icon:'👾', name:'PIXEL ART',   desc:'像素·边界·有限', shader:'pixel', uses:['flat','steps','edge','grain','warm','sat'] },
+  neon:       { group:'灵感滤镜', icon:'🌆', name:'NEON NOIR',   desc:'霓虹·高亮·边缘', shader:'neon', uses:['flat','steps','edge','grain','warm','sat'] },
+  risograph:  { group:'灵感滤镜', icon:'🖨️', name:'RISOGRAPH',   desc:'印刷·叠色·颗粒', shader:'risograph', uses:['flat','steps','edge','grain','warm','sat'] },
 };
 const OUTLINES = [
   { id:1, label:'有描边' },
   { id:0, label:'无描边' },
-  { id:2, label:'手绘线' }
 ];
 const SMOOTHS = [
-  { id:0, label:'OFF' },
-  { id:1, label:'LOW' },
-  { id:2, label:'HIGH' }
+  { id:0, label:'关闭' },
+  { id:1, label:'低' },
+  { id:2, label:'高' }
+];
+const QUALITIES = [
+  { id:1.0, label:'原图' },
+  { id:0.8, label:'中等' },
+  { id:0.5, label:'较小' }
 ];
 
 const STORAGE_KEY = 'mirage_complete_c_presets';
 let currentStyle = 'comic';
 let outlineMode = 1;
 let smoothMode = 0;
+let qualityMode = 1.0;
 let srcTex = null, imgW = 0, imgH = 0;
+let originalImg = null;
+let originalFileName = '';
+let originalFileSize = 0;
+let styledSizeEstimateToken = 0;
 let batchFiles = [], batchResults = [], batchRunning = false;
 const glCv = document.getElementById('glCv');
 const gl = glCv.getContext('webgl2') || glCv.getContext('webgl');
 if (!gl) alert('当前浏览器不支持 WebGL，建议使用 Chrome 或 Edge');
+
+// 获取当前浏览器 GPU 支持的最大渲染尺寸
+let MAX_GL_SIZE = 4096;
+if (gl) {
+  const maxTex = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+  const maxRb = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+  const maxVp = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+  MAX_GL_SIZE = maxTex || 4096;
+  if (maxRb) MAX_GL_SIZE = Math.min(MAX_GL_SIZE, maxRb);
+  if (maxVp) MAX_GL_SIZE = Math.min(MAX_GL_SIZE, maxVp[0], maxVp[1]);
+}
+
 const VS = `
 attribute vec2 a_pos;
 attribute vec2 a_uv;
@@ -834,6 +1012,31 @@ const SHADERS = {
     col = mix(col, vec3(0.06, 0.04, 0.02), edge);
     ${applyPost('col')}
   `),
+  polaroid: makeShader(`
+  vec3 col = orig.rgb;
+  float steps = max(2.0, u_steps);
+  col = floor(col * steps) / steps;
+  col *= 1.08;
+  float lum = luma(orig.rgb);
+  float over = smoothstep(0.7, 1.0, lum);
+  col += over * 0.45;
+  col = mix(col, vec3(1.0), over * 0.35);
+  float bloom = smoothstep(0.75, 1.0, lum);
+  col += bloom * 0.25;
+  float gray = luma(col);
+  col = mix(vec3(gray), col, 0.78);
+  col.r += u_warm * 0.18;
+  col.g += u_warm * 0.08;
+  col.b -= u_warm * 0.12;
+  vec3 hsv = rgb2hsv(col);
+  hsv.y = clamp(hsv.y * (0.7 + u_sat * 0.4), 0.0, 1.0);
+  col = hsv2rgb(hsv);
+  float g = (rand(uv * u_res) - 0.5) * u_grain * 0.15;
+  col += g;
+  float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+  col = mix(col, vec3(0.18, 0.10, 0.06), edge * 0.85);
+  ${applyPost('col')}
+`),
   retroprint: makeShader(`
     float off = px.x * 1.8;
     vec3 col;
@@ -937,6 +1140,8 @@ const SHADERS = {
     vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
     float line = mod(floor(uv.y * u_res.y), 3.0); float scan = line < 1.0 ? 0.88 : 1.0; col *= scan;
     float g = (rand(uv+0.5)-0.5) * u_grain * 0.18; col += g;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.10, 0.06, 0.03), edge * 0.9);
     ${applyPost('col')}
   `),
   kuwahara: makeShader(`
@@ -948,6 +1153,8 @@ const SHADERS = {
     float minSigma = 1e10; vec3 col = vec3(0.0);
     for(int k=0;k<4;k++){ m[k]/=n; s[k]=abs(s[k]/n-m[k]*m[k]); float sigma=s[k].r+s[k].g+s[k].b; if(sigma < minSigma){minSigma=sigma; col=m[k];}}
     vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.09, 0.06, 0.04), edge * 0.85);
     ${applyPost('col')}
   `),
   pixel: makeShader(`
@@ -957,6 +1164,8 @@ const SHADERS = {
     float steps = max(2.0, u_steps); col = floor(col * steps + 0.5) / steps;
     vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
     vec2 pixPos = mod(uv * u_res, pxSize); float gridLine = step(pxSize - 0.8, pixPos.x) + step(pxSize - 0.8, pixPos.y); gridLine = clamp(gridLine, 0.0, 1.0) * 0.25; col -= gridLine;
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.04, 0.04, 0.04), edge * 0.8);
     ${applyPost('col')}
   `),
   neon: makeShader(`
@@ -991,6 +1200,8 @@ const SHADERS = {
     vec3 paper = vec3(0.97, 0.95, 0.90); vec3 col = paper; col = mix(col, risoC, dotC * 0.8); col = mix(col, risoM, dotM * 0.8); col = mix(col, risoY, dotY * 0.8);
     float grain = (rand(uv * 500.0) - 0.5) * u_grain * 0.12; col += grain;
     vec3 hsv = rgb2hsv(col); hsv.y = clamp(hsv.y * u_sat, 0.0, 1.0); col = hsv2rgb(hsv);
+    float edge = edgeMask(u_tex, uv, px, u_edge, u_outline);
+    col = mix(col, vec3(0.12, 0.05, 0.10), edge * 0.75);
     ${applyPost('col')}
   `)
 };
@@ -1019,7 +1230,61 @@ function bindQuad(prog) {
   gl.enableVertexAttribArray(uv);  gl.vertexAttribPointer(uv, 2, gl.FLOAT, false, 16, 8);
 }
 function setU1f(prog, name, val) { const loc = gl.getUniformLocation(prog, name); if (loc !== null) gl.uniform1f(loc, val); }
-function fitSize(w,h,maxSide=900){ const ratio=Math.min(1,maxSide/Math.max(w,h)); return {width:Math.round(w*ratio),height:Math.round(h*ratio)}; }
+function formatMB(bytes, withSpace = true) {
+  if (!bytes || bytes < 0) return withSpace ? '0.0 mb' : '0.0mb';
+  const value = (bytes / 1024 / 1024).toFixed(1);
+  return withSpace ? `${value} mb` : `${value}mb`;
+}
+function updatePreviewSizeLabels(styledBytes = null) {
+  const srcLbl = document.getElementById('srcLbl');
+  const outLbl = document.getElementById('outLbl');
+  if (srcLbl) {
+    srcLbl.innerHTML = `<span class="pip" style="color:var(--muted)"></span>ORIGINAL · 原图 · ${formatMB(originalFileSize, true)}`;
+  }
+  if (outLbl) {
+    const sizeText = styledBytes == null ? '估算中' : formatMB(styledBytes, false);
+    outLbl.innerHTML = `<span class="pip" style="color:var(--rust)"></span>STYLED · 风格化 · ${sizeText}`;
+  }
+}
+function updateStyledSizeEstimate() {
+  const dst = document.getElementById('dstCv');
+  if (!dst || !dst.width || !dst.height) {
+    updatePreviewSizeLabels(null);
+    return;
+  }
+  const token = ++styledSizeEstimateToken;
+  updatePreviewSizeLabels(null);
+  dst.toBlob(blob => {
+    if (token !== styledSizeEstimateToken) return;
+    updatePreviewSizeLabels(blob ? blob.size : null);
+  }, 'image/jpeg', 0.92);
+}
+
+// 预览与导出共用同一套尺寸限制：WebGL 上限 + 安全像素面积上限
+// 这样屏幕预览和导出文件基于同一张渲染画布，避免 900px 预览 / 高清导出造成风格密度漂移。
+const SAFE_MAX_PIXELS = 16_000_000;
+function getSafeRenderSize(w, h) {
+  let ow = w;
+  let oh = h;
+
+  // 1. 根据 WebGL 硬件限制自动缩放，避免大图渲染黑块或溢出。
+  if (ow > MAX_GL_SIZE || oh > MAX_GL_SIZE) {
+    const maxRatio = MAX_GL_SIZE / Math.max(ow, oh);
+    ow = Math.floor(ow * maxRatio);
+    oh = Math.floor(oh * maxRatio);
+  }
+
+  // 2. 根据安全面积限制，避免移动端 / Safari 分配显存失败。
+  const pixels = ow * oh;
+  if (pixels > SAFE_MAX_PIXELS) {
+    const ratio = Math.sqrt(SAFE_MAX_PIXELS / pixels);
+    ow = Math.floor(ow * ratio);
+    oh = Math.floor(oh * ratio);
+  }
+
+  return { width: Math.max(1, ow), height: Math.max(1, oh) };
+}
+function fitSize(w, h) { return getSafeRenderSize(w, h); }
 function uploadTex(source) {
   if (srcTex) gl.deleteTexture(srcTex);
   srcTex = gl.createTexture();
@@ -1036,12 +1301,14 @@ function getSettings() {
     style: currentStyle,
     outline: outlineMode,
     smooth: smoothMode,
+    quality: qualityMode,
     flat: parseInt(document.getElementById('sl-flat').value) / 100,
     steps: parseInt(document.getElementById('sl-steps').value),
     edge: parseInt(document.getElementById('sl-edge').value) / 100,
     grain: parseInt(document.getElementById('sl-grain').value) / 100,
     warm: parseInt(document.getElementById('sl-warm').value) / 100,
     sat: parseInt(document.getElementById('sl-sat').value) / 100,
+    elements: cloneElemState(),
   };
 }
 function renderFromCurrentTexture(targetCanvas, w, h, settings) {
@@ -1074,10 +1341,14 @@ function renderFromCurrentTexture(targetCanvas, w, h, settings) {
 function renderMain() {
   if (!srcTex) return;
   const settings = getSettings();
-  renderFromCurrentTexture(document.getElementById('dstCv'), imgW, imgH, settings);
+  const dst = document.getElementById('dstCv');
+  renderFromCurrentTexture(dst, imgW, imgH, settings);
+  applyElements(dst);
+  dst.style.imageRendering = qualityMode < 1.0 ? 'pixelated' : 'auto';
   document.getElementById('stamp').textContent = PRESETS[currentStyle].name;
   document.getElementById('styleInfo').textContent = PRESETS[currentStyle].name;
   document.getElementById('smoothInfo').textContent = '平滑: ' + (smoothMode === 0 ? 'OFF' : smoothMode === 1 ? 'LOW' : 'HIGH');
+  updateStyledSizeEstimate();
 }
 function applyEffect() {
   const prog = document.getElementById('prog');
@@ -1089,20 +1360,34 @@ function applyEffect() {
     setTimeout(() => prog.style.width = '0%', 300);
   }, 60);
 }
+function applyQualityToImg(img) {
+  const size = getSafeRenderSize(img.width, img.height);
+  imgW = Math.max(1, Math.round(size.width  * qualityMode));
+  imgH = Math.max(1, Math.round(size.height * qualityMode));
+  const src = document.getElementById('srcCv');
+  src.width = imgW; src.height = imgH;
+  src.getContext('2d').drawImage(img, 0, 0, imgW, imgH);
+  uploadTex(src);
+  // Don't change display size — let CSS stretch the low-res canvas to full width,
+  // pixelated rendering makes the pixel blocks visible
+  src.style.width = '';
+  src.style.imageRendering = qualityMode < 1.0 ? 'pixelated' : 'auto';
+  const qualityLabel = QUALITIES.find(q => q.id === qualityMode)?.label || '原图';
+  document.getElementById('sizeInfo').textContent =
+    `原图 ${img.width}×${img.height} · ${qualityLabel} ${imgW}×${imgH}`;
+}
 function loadImg(file) {
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
-      const size = fitSize(img.width, img.height, 900);
-      imgW = size.width; imgH = size.height;
-      const src = document.getElementById('srcCv');
-      src.width = imgW; src.height = imgH;
-      src.getContext('2d').drawImage(img, 0, 0, imgW, imgH);
-      uploadTex(src);
+      originalImg = img;
+      originalFileName = file.name;
+      originalFileSize = file.size || 0;
+      updatePreviewSizeLabels(null);
+      applyQualityToImg(img);
       document.getElementById('dz').style.display = 'none';
       document.getElementById('resultWrap').classList.add('show');
-      document.getElementById('sizeInfo').textContent = `${img.width}×${img.height} → ${imgW}×${imgH}`;
       applyEffect();
     };
     img.src = e.target.result;
@@ -1124,24 +1409,458 @@ function updateParamVisibility() {
     document.getElementById('param-' + id).style.display = uses.includes(id) ? 'flex' : 'none';
   });
 }
+// ── Filter group sub-tabs ──────────────────────────────
+let currentFilterGroup = '基础滤镜';
 function renderPresetList() {
   const container = document.getElementById('presetList');
-  const groups = ['基础滤镜','灵感滤镜'];
   container.innerHTML = '';
-  groups.forEach(group => {
-    const sub = document.createElement('div'); sub.className = 'preset-subhead'; sub.textContent = group; container.appendChild(sub);
-    Object.entries(PRESETS).forEach(([key, item]) => {
-      if (item.group !== group) return;
-      const card = document.createElement('div');
-      card.className = 'preset-card' + (currentStyle === key ? ' active' : '');
-      card.dataset.style = key;
-      card.innerHTML = `<span class="preset-icon">${item.icon}</span><div class="preset-info"><div class="preset-name">${item.name}</div><div class="preset-desc">${item.desc}</div></div>`;
-      card.addEventListener('click', () => {
-        currentStyle = key;
-        renderPresetList(); updateParamVisibility(); if (srcTex) applyEffect();
-      });
-      container.appendChild(card);
+  Object.entries(PRESETS).forEach(([key, item]) => {
+    if (item.group !== currentFilterGroup) return;
+    const card = document.createElement('div');
+    card.className = 'preset-card' + (currentStyle === key ? ' active' : '');
+    card.dataset.style = key;
+    card.innerHTML = `<span class="preset-icon">${item.icon}</span><div class="preset-info"><div class="preset-name">${item.name}</div><div class="preset-desc">${item.desc}</div></div>`;
+    card.addEventListener('click', () => {
+      currentStyle = key;
+      renderPresetList(); updateParamVisibility(); if (srcTex) applyEffect();
     });
+    container.appendChild(card);
+  });
+}
+document.querySelectorAll('.filter-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilterGroup = btn.dataset.fgroup;
+    renderPresetList();
+  });
+});
+
+// ── Element simulation ─────────────────────────────────
+
+const ELEMENTS = [
+  {
+    id: 'softlight',
+    icon: '☁️', name: '柔光',
+    params: [
+      { id: 'opacity', label: '不透明度', min: 0, max: 100, value: 48, fmt: v => (v/100).toFixed(2) },
+      { id: 'radius',  label: '扩散半径', min: 1, max: 14,  value: 5,  fmt: v => v },
+      { id: 'threshold', label: '高光阈值', min: 120, max: 250, value: 200, fmt: v => v },
+    ]
+  },
+  {
+    id: 'overlay',
+    icon: '🧬', name: '重叠',
+    params: [
+      { id: 'opacity', label: '不透明度', min: 0, max: 100, value: 30, fmt: v => (v/100).toFixed(2) },
+      { id: 'count',   label: '张数', min: 1, max: 6, value: 3, fmt: v => v },
+      { id: 'offset',  label: '随机位置距离', min: 0, max: 100, value: 15, fmt: v => v },
+    ]
+  },
+  {
+    id: 'digital',
+    icon: '📡', name: '电子',
+    options: {
+      maskColor: [
+        { id: 'cyan',    label: '青色' },
+        { id: 'green',   label: '绿色' },
+        { id: 'amber',   label: '琥珀' },
+        { id: 'magenta', label: '洋红' },
+        { id: 'black',   label: '暗黑' },
+        { id: 'white',   label: '浅白' },
+      ]
+    },
+    params: [
+      { id: 'opacity',   label: '不透明度', min: 0, max: 100, value: 45, fmt: v => (v/100).toFixed(2) },
+      { id: 'frequency', label: '扫描密度', min: 1, max: 24,  value: 6,  fmt: v => v },
+    ]
+  },
+  {
+    id: 'neonGlow',
+    icon: '💜', name: '偏色',
+    params: [
+      { id: 'opacity', label: '偏色强度', min: 0, max: 100, value: 55, fmt: v => (v/100).toFixed(2) },
+      { id: 'hue',     label: '色相偏移', min: 0, max: 360, value: 270, fmt: v => v + '°' },
+    ]
+  },
+  {
+    id: 'glitch',
+    icon: '⚡', name: '故障',
+    params: [
+      { id: 'opacity',   label: '效果强度',    min: 0, max: 100, value: 40, fmt: v => (v/100).toFixed(2) },
+      { id: 'blockSize', label: '分块大小',  min: 1, max: 20,  value: 6,  fmt: v => v },
+      { id: 'chroma',    label: '色差偏移', min: 0, max: 20, value: 8,  fmt: v => v },
+    ]
+  },
+  {
+    id: 'metal',
+    icon: '🫧', name: '晕影',
+    params: [
+      { id: 'opacity',   label: '不透明度', min: 0, max: 100, value: 50, fmt: v => (v/100).toFixed(2) },
+      { id: 'sharpness', label: '高光锐度', min: 1, max: 10,  value: 4,  fmt: v => v },
+    ]
+  },
+];
+
+// State: { id -> { enabled, params: {id -> value}, options: {key -> optionId} } }
+const elemState = {};
+ELEMENTS.forEach(e => {
+  elemState[e.id] = { enabled: false, params: {}, options: {} };
+  e.params.forEach(p => { elemState[e.id].params[p.id] = p.value; });
+  if (e.options) {
+    Object.entries(e.options).forEach(([key, opts]) => {
+      elemState[e.id].options[key] = opts[0].id;
+    });
+  }
+});
+let expandedElem = null; // currently expanded elem id
+
+function cloneElemState() {
+  return JSON.parse(JSON.stringify(elemState));
+}
+function restoreElemState(snapshot) {
+  ELEMENTS.forEach(e => {
+    const src = snapshot && snapshot[e.id] ? snapshot[e.id] : null;
+    elemState[e.id].enabled = !!(src && src.enabled);
+    e.params.forEach(p => {
+      elemState[e.id].params[p.id] = src && src.params && src.params[p.id] != null ? src.params[p.id] : p.value;
+    });
+    if (e.options) {
+      Object.entries(e.options).forEach(([key, opts]) => {
+        const fallback = opts[0].id;
+        elemState[e.id].options[key] = src && src.options && src.options[key] ? src.options[key] : fallback;
+      });
+    } else {
+      elemState[e.id].options = {};
+    }
+  });
+}
+
+function renderElemList() {
+  const container = document.getElementById('elemList');
+  container.innerHTML = '';
+
+  ELEMENTS.forEach((elem, idx) => {
+    const st = elemState[elem.id];
+    const chip = document.createElement('div');
+    chip.className = 'elem-chip' + (st.enabled ? ' active' : '');
+    chip.dataset.id = elem.id;
+    chip.innerHTML = `
+      <div class="elem-chip-top">
+        <span class="elem-chip-name">${elem.name}</span>
+        <span class="elem-dot"></span>
+      </div>`;
+
+    chip.addEventListener('click', () => {
+      st.enabled = !st.enabled;
+      expandedElem = st.enabled ? elem.id : (expandedElem === elem.id ? null : expandedElem);
+      renderElemList();
+      if (srcTex) applyEffect();
+    });
+
+    chip.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      expandedElem = expandedElem === elem.id ? null : elem.id;
+      renderElemList();
+    });
+
+    container.appendChild(chip);
+
+    const isLast = idx === ELEMENTS.length - 1;
+    const isThird = (idx + 1) % 3 === 0;
+    const rowStart = Math.floor(idx / 3) * 3;
+    const rowEnd = Math.min(rowStart + 3, ELEMENTS.length) - 1;
+    const rowElemIds = ELEMENTS.slice(rowStart, rowEnd + 1).map(e => e.id);
+    const shouldInject = (isThird || isLast) && expandedElem && rowElemIds.includes(expandedElem);
+
+    if (shouldInject) {
+      const expandedDef = ELEMENTS.find(e => e.id === expandedElem);
+      const expandSt = elemState[expandedElem];
+      const optionHtml = expandedDef.options ? Object.entries(expandedDef.options).map(([optKey, opts]) => `
+        <div class="elem-choice-row">
+          <div class="elem-param-hd">
+            <span class="elem-param-lbl">${optKey === 'mode' ? '样式' : optKey === 'maskColor' ? '遮罩颜色' : '色差模式'}</span>
+            <span class="elem-param-val">${opts.find(o => o.id === expandSt.options[optKey])?.label || ''}</span>
+          </div>
+          <div class="elem-choice-list">
+            ${opts.map(opt => `<button class="elem-choice-btn${expandSt.options[optKey] === opt.id ? ' active' : ''}" data-optkey="${optKey}" data-optid="${opt.id}">${opt.label}</button>`).join('')}
+          </div>
+        </div>
+      `).join('') : '';
+      const panel = document.createElement('div');
+      panel.className = 'elem-expand open';
+      panel.innerHTML = `
+        <div class="elem-expand-title">${expandedDef.name} · 参数</div>
+        ${optionHtml}
+        ${expandedDef.params.map(p => `
+          <div class="elem-param-row">
+            <div class="elem-param-hd">
+              <span class="elem-param-lbl">${p.label}</span>
+              <span class="elem-param-val" id="ev-${expandedDef.id}-${p.id}">${p.fmt(expandSt.params[p.id])}</span>
+            </div>
+            <input type="range" min="${p.min}" max="${p.max}" value="${expandSt.params[p.id]}" id="esl-${expandedDef.id}-${p.id}">
+          </div>
+        `).join('')}`;
+
+      if (expandedDef.options) {
+        panel.querySelectorAll('.elem-choice-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            expandSt.options[btn.dataset.optkey] = btn.dataset.optid;
+            renderElemList();
+            applyDebounced();
+          });
+        });
+      }
+
+      expandedDef.params.forEach(p => {
+        const sl = panel.querySelector(`#esl-${expandedDef.id}-${p.id}`);
+        const vl = panel.querySelector(`#ev-${expandedDef.id}-${p.id}`);
+        sl.addEventListener('input', () => {
+          expandSt.params[p.id] = parseInt(sl.value);
+          vl.textContent = p.fmt(sl.value);
+          applyDebounced();
+        });
+      });
+
+      container.appendChild(panel);
+    }
+  });
+}
+// ── Element post-processing shaders ───────────────────
+// Each runs on Canvas 2D after the main WebGL pass
+
+function applyElements(canvas) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+
+  function noise2(x, y) {
+    const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+    return n - Math.floor(n);
+  }
+
+  ELEMENTS.forEach(elem => {
+    const st = elemState[elem.id];
+    if (!st.enabled) return;
+    const op = (st.params.opacity || 0) / 100;
+
+    if (elem.id === 'softlight') {
+      const radius = st.params.radius;
+      const threshold = st.params.threshold;
+      const src = ctx.getImageData(0, 0, w, h);
+      const d = src.data;
+      const mask = document.createElement('canvas');
+      mask.width = w; mask.height = h;
+      const mc = mask.getContext('2d');
+      const mid = mc.createImageData(w, h);
+      for (let i = 0; i < d.length; i += 4) {
+        const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        const actualThreshold = 255 - threshold;
+        const a = lum > actualThreshold ? Math.min(255, (lum - actualThreshold) * 2.8) : 0;
+        mid.data[i] = d[i]; mid.data[i+1] = d[i+1]; mid.data[i+2] = d[i+2]; mid.data[i+3] = a;
+      }
+      mc.putImageData(mid, 0, 0);
+      const glow = document.createElement('canvas'); glow.width = w; glow.height = h;
+      const gc = glow.getContext('2d');
+      gc.filter = `blur(${radius * 3}px) brightness(1.25)`;
+      gc.drawImage(mask, 0, 0);
+      ctx.save(); ctx.globalAlpha = op * 0.8; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(glow, 0, 0); ctx.restore();
+      ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = op * 0.22;
+      for (let y = 0; y < h; y += 24) {
+        for (let x = 0; x < w; x += 24) {
+          const sx = Math.min(w - 1, x + 12), sy = Math.min(h - 1, y + 12);
+          const idx = (sy * w + sx) * 4;
+          const lum = 0.299 * d[idx] + 0.587 * d[idx+1] + 0.114 * d[idx+2];
+          if (lum > (255 - threshold) + 18 && noise2(sx, sy) > 0.72) {
+            ctx.strokeStyle = 'rgba(255,245,235,0.9)'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(sx - 3, sy); ctx.lineTo(sx + 3, sy); ctx.moveTo(sx, sy - 3); ctx.lineTo(sx, sy + 3); ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    if (elem.id === 'overlay') {
+      const count = st.params.count || 3;
+      // 保证导出高像素时位移比例相同，以 900 宽为基准缩放位移值
+      const baseOffset = st.params.offset || 0;
+      const maxOffset = baseOffset * (w / 900);
+      
+      const tmp = document.createElement('canvas');
+      tmp.width = w; tmp.height = h;
+      const tc = tmp.getContext('2d');
+      tc.drawImage(canvas, 0, 0);
+
+      ctx.save();
+      ctx.globalAlpha = op;
+      
+      // 使用固定种子，使得拖动滑块或改变其他参数时，位置分布稳定不会剧烈闪烁跳动
+      let seed = 42; 
+      for(let i = 1; i <= count; i++) {
+          const randX = Math.sin(seed++) * 10000;
+          const randY = Math.sin(seed++) * 10000;
+          // 生成 -1 到 1 之间的伪随机数，代表方向
+          const dx = (randX - Math.floor(randX)) * 2 - 1;
+          const dy = (randY - Math.floor(randY)) * 2 - 1;
+          
+          ctx.drawImage(tmp, dx * maxOffset, dy * maxOffset);
+      }
+      ctx.restore();
+    }
+
+    if (elem.id === 'digital') {
+      const freq = st.params.frequency;
+      const maskColor = st.options.maskColor || 'cyan';
+      const palette = {
+        cyan:    [90,  235, 255],
+        green:   [95,  255, 145],
+        amber:   [255, 192, 88],
+        magenta: [255, 86,  205],
+        black:   [0,   0,   0],
+        white:   [255, 255, 255],
+      }[maskColor];
+      const [r, g, b] = palette;
+
+      // 以900px为基准计算线宽和间距，按实际分辨率等比缩放
+      const scale = h / 900;
+      const lineH = Math.max(1, Math.round(scale));           // 线自身高度
+      const gap   = Math.max(lineH * 2, Math.round((22 - freq * 0.85) * scale)); // 线+间距
+
+      const scan = document.createElement('canvas');
+      scan.width = w; scan.height = h;
+      const sc = scan.getContext('2d');
+
+      if (maskColor === 'black') {
+        sc.fillStyle = `rgba(0,0,0,${op * 0.7})`;
+        for (let y = 0; y < h; y += gap) sc.fillRect(0, y, w, lineH);
+        ctx.drawImage(scan, 0, 0);
+      } else if (maskColor === 'white') {
+        sc.fillStyle = `rgba(255,255,255,${op * 0.6})`;
+        for (let y = 0; y < h; y += gap) sc.fillRect(0, y, w, lineH);
+        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.drawImage(scan, 0, 0); ctx.restore();
+      } else {
+        sc.fillStyle = `rgba(${r},${g},${b},${op * 0.7})`;
+        for (let y = 0; y < h; y += gap) sc.fillRect(0, y, w, lineH);
+        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.drawImage(scan, 0, 0); ctx.restore();
+        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = op * 0.1;
+        ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.fillRect(0, 0, w, h); ctx.restore();
+      }
+    }
+
+    if (elem.id === 'neonGlow') {
+      const hue = st.params.hue;
+      const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+      const tc = tmp.getContext('2d');
+      tc.filter = `blur(6px) hue-rotate(${hue}deg) saturate(5)`;
+      tc.drawImage(canvas, 0, 0);
+      ctx.save(); ctx.globalAlpha = op * 0.7; ctx.globalCompositeOperation = 'screen'; ctx.drawImage(tmp, 0, 0); ctx.restore();
+    }
+
+    if (elem.id === 'glitch') {
+      // Douyin / TikTok-style glitch: RGB split + horizontal slice tearing + neon echo.
+      // Keeps the original three controls unchanged:
+      // - opacity   -> overall intensity
+      // - blockSize -> slice height / tearing granularity
+      // - chroma    -> red/cyan offset distance
+      const bs = Math.max(1, st.params.blockSize || 1);
+      const chroma = Math.max(0, st.params.chroma || 0);
+      if (op <= 0 && chroma <= 0) return;
+
+      const base = document.createElement('canvas');
+      base.width = w; base.height = h;
+      const bc = base.getContext('2d');
+      bc.drawImage(canvas, 0, 0);
+
+      const scale = Math.max(0.75, Math.min(3.0, Math.sqrt((w * h) / (900 * 900))));
+      const chromaPx = Math.round(chroma * scale * (0.45 + op * 1.35));
+      const maxTear = Math.round((8 + bs * 2.2 + chroma * 0.9) * scale * op);
+      const minBand = Math.max(1, Math.round((2 + bs * 0.35) * scale));
+      const maxBand = Math.max(minBand + 1, Math.round((5 + bs * 1.55) * scale));
+
+      // 1) Cyan/red ghost layers, the most recognizable Douyin-icon move.
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = Math.min(0.92, op * 0.95);
+      ctx.filter = 'brightness(1.08) saturate(1.35)';
+      ctx.drawImage(base, -chromaPx, 0);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = Math.min(0.82, op * 0.78);
+      ctx.drawImage(base, chromaPx, 0);
+      ctx.restore();
+
+      // 2) Real per-channel displacement. This is the part that makes the sliders visibly react.
+      const id = ctx.getImageData(0, 0, w, h);
+      const src = new Uint8ClampedArray(id.data);
+      const out = id.data;
+      const rShift = chromaPx;
+      const bShift = -chromaPx;
+      for (let y = 0; y < h; y++) {
+        const wave = Math.sin(y * 0.055 + bs * 1.7) * op * chroma * scale * 0.28;
+        for (let x = 0; x < w; x++) {
+          const di = (y * w + x) * 4;
+          const rx = Math.max(0, Math.min(w - 1, Math.round(x - rShift - wave)));
+          const bx = Math.max(0, Math.min(w - 1, Math.round(x - bShift + wave)));
+          out[di]     = src[(y * w + rx) * 4];
+          out[di + 1] = Math.round(src[di + 1] * (1.0 - op * 0.10) + src[(y * w + x) * 4 + 1] * op * 0.10);
+          out[di + 2] = src[(y * w + bx) * 4 + 2];
+        }
+      }
+      ctx.putImageData(id, 0, 0);
+
+      // 3) Horizontal digital tearing. Deterministic pseudo-random so it does not flicker on every render.
+      const tear = document.createElement('canvas');
+      tear.width = w; tear.height = h;
+      const tc = tear.getContext('2d');
+      tc.drawImage(canvas, 0, 0);
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, 0.35 + op * 0.75);
+      let seed = 1337 + bs * 101 + Math.round(chroma * 17) + Math.round(op * 1000);
+      const rnd = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      const stride = Math.max(2, Math.round(maxBand * (1.15 - op * 0.45)));
+      for (let y = 0; y < h; y += stride) {
+        const bandH = Math.max(1, Math.round(minBand + rnd() * (maxBand - minBand)));
+        const hit = rnd() < (0.22 + op * 0.68);
+        if (!hit) continue;
+        const dx = Math.round((rnd() * 2 - 1) * maxTear);
+        const dy = Math.round((rnd() * 2 - 1) * Math.max(1, bs * 0.18 * scale));
+        ctx.drawImage(tear, 0, y, w, bandH, dx, y + dy, w, bandH);
+
+        // Occasional bright cyan/magenta micro-bars, like compressed video damage.
+        if (rnd() < op * 0.55) {
+          ctx.globalCompositeOperation = 'screen';
+          ctx.fillStyle = rnd() > 0.5
+            ? 'rgba(0,245,255,' + (op * 0.42) + ')'
+            : 'rgba(255,35,110,' + (op * 0.38) + ')';
+          ctx.fillRect(Math.max(0, dx), y, Math.min(w, Math.abs(dx) + chromaPx * 2 + bs * scale), Math.max(1, Math.round(bandH * 0.55)));
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      }
+      ctx.restore();
+
+      // 4) Fine scanline/noise layer. Subtle, but it prevents the effect from looking like plain blur.
+      ctx.save();
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = op * 0.32;
+      const lineGap = Math.max(2, Math.round((6 - Math.min(5, bs * 0.22)) * scale));
+      for (let y = 0; y < h; y += lineGap) {
+        ctx.fillStyle = y % (lineGap * 2) === 0 ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, y, w, Math.max(1, Math.round(scale)));
+      }
+      ctx.restore();
+    }
+
+    if (elem.id === 'metal') {
+      const sharp = st.params.sharpness;
+      const blurRadius = (11 - sharp) * 0.5;
+      const tmp = document.createElement('canvas'); tmp.width = w; tmp.height = h;
+      const tc = tmp.getContext('2d');
+      tc.filter = `blur(${blurRadius}px) contrast(2) brightness(1.4) saturate(0.2) hue-rotate(35deg)`;
+      tc.drawImage(canvas, 0, 0);
+      ctx.save(); ctx.globalAlpha = op * 0.58; ctx.globalCompositeOperation = 'overlay'; ctx.drawImage(tmp, 0, 0); ctx.restore();
+    }
   });
 }
 function renderToggle(containerId, items, activeId, onClick) {
@@ -1157,18 +1876,27 @@ function renderToggle(containerId, items, activeId, onClick) {
 function rerenderToggles() {
   renderToggle('outlineToggle', OUTLINES, outlineMode, (id) => { outlineMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
   renderToggle('smoothToggle', SMOOTHS, smoothMode, (id) => { smoothMode = id; rerenderToggles(); if (srcTex) applyEffect(); });
+  renderToggle('qualityToggle', QUALITIES, qualityMode, (id) => {
+    qualityMode = id;
+    rerenderToggles();
+    if (srcTex && originalImg) { applyQualityToImg(originalImg); applyEffect(); }
+  });
 }
 function loadSavedPresets() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; } }
 function saveSavedPresets(list) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch {} }
 function applySaved(p) {
   currentStyle = p.style; outlineMode = p.outline; smoothMode = p.smooth;
+  qualityMode = p.quality != null ? p.quality : 1.0;
   document.getElementById('sl-flat').value = Math.round(p.flat * 100);
   document.getElementById('sl-steps').value = p.steps;
   document.getElementById('sl-edge').value = Math.round(p.edge * 100);
   document.getElementById('sl-grain').value = Math.round(p.grain * 100);
   document.getElementById('sl-warm').value = Math.round(p.warm * 100);
   document.getElementById('sl-sat').value = Math.round(p.sat * 100);
-  updateParamDisplay(); renderPresetList(); rerenderToggles(); updateParamVisibility(); if (srcTex) applyEffect();
+  restoreElemState(p.elements || null);
+  updateParamDisplay(); renderPresetList(); rerenderToggles(); updateParamVisibility(); renderElemList();
+  if (srcTex && originalImg) { applyQualityToImg(originalImg); applyEffect(); }
+  else if (srcTex) applyEffect();
 }
 function renderSavedList() {
   const list = loadSavedPresets();
@@ -1195,8 +1923,21 @@ function applyDebounced() { clearTimeout(_applyTimer); _applyTimer = setTimeout(
   document.getElementById('sl-' + id).addEventListener('input', () => { updateParamDisplay(); applyDebounced(); });
 });
 document.getElementById('btnExport').addEventListener('click', () => {
-  const cv = document.getElementById('dstCv'); if (!cv.width) return;
-  const a = document.createElement('a'); a.href = cv.toDataURL('image/png'); a.download = `mirage_${currentStyle}_${Date.now()}.png`; a.click();
+  const outCv = document.getElementById('dstCv');
+  if (!outCv || !outCv.width || !outCv.height) return;
+
+  // 预览画布现在已经是最终安全导出尺寸，所以直接导出当前预览。
+  // 这能保证导出和屏幕结果一致，包括颗粒、网点、扫描线和随机类附加元素。
+  outCv.toBlob(blob => {
+    if (!blob) return;
+    const sizeMB = (blob.size / 1024 / 1024).toFixed(1);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = originalFileName || `mirage_${currentStyle}.jpg`;
+    a.click();
+    document.getElementById('sizeInfo').textContent =
+      `${originalImg ? originalImg.width : outCv.width}×${originalImg ? originalImg.height : outCv.height} · 导出 ${outCv.width}×${outCv.height} · ${sizeMB}MB`;
+  }, 'image/jpeg', 0.92);
 });
 const dz = document.getElementById('dz');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
@@ -1236,20 +1977,42 @@ async function renderFileToBlob(dataUrl, settings) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const size = fitSize(img.width, img.height, 900);
-      const tmp = document.createElement('canvas'); tmp.width = size.width; tmp.height = size.height;
-      tmp.getContext('2d').drawImage(img, 0, 0, size.width, size.height);
+      const SAFE_MAX_PIXELS = 16_000_000;
+      let ow = img.width, oh = img.height;
+      if (ow > MAX_GL_SIZE || oh > MAX_GL_SIZE) {
+        const maxRatio = MAX_GL_SIZE / Math.max(ow, oh);
+        ow = Math.floor(ow * maxRatio); oh = Math.floor(oh * maxRatio);
+      }
+      const pixels = ow * oh;
+      if (pixels > SAFE_MAX_PIXELS) {
+        const ratio = Math.sqrt(SAFE_MAX_PIXELS / pixels);
+        ow = Math.floor(ow * ratio); oh = Math.floor(oh * ratio);
+      }
+      // Apply quality scale from settings
+      const q = settings.quality != null ? settings.quality : 1.0;
+      ow = Math.max(1, Math.round(ow * q));
+      oh = Math.max(1, Math.round(oh * q));
+      const tmp = document.createElement('canvas'); tmp.width = ow; tmp.height = oh;
+      tmp.getContext('2d').drawImage(img, 0, 0, ow, oh);
       const prevTex = srcTex; const prevW = imgW; const prevH = imgH;
-      imgW = size.width; imgH = size.height; uploadTex(tmp);
+      imgW = ow; imgH = oh; uploadTex(tmp);
       const out = document.createElement('canvas');
       renderFromCurrentTexture(out, imgW, imgH, settings);
+      const prevElems = cloneElemState();
+      restoreElemState(settings.elements || null);
+      applyElements(out);
+      restoreElemState(prevElems);
       imgW = prevW; imgH = prevH; srcTex = prevTex;
-      out.toBlob(blob => resolve(blob), 'image/png');
+      out.toBlob(blob => resolve(blob), 'image/jpeg', 0.92);
     };
     img.onerror = reject; img.src = dataUrl;
   });
 }
 const batchDz = document.getElementById('batchDz');
+batchDz.addEventListener('click', () => {
+  if (batchRunning) return;
+  document.getElementById('batchFi').click();
+});
 batchDz.addEventListener('dragover', e => { e.preventDefault(); batchDz.classList.add('over'); });
 batchDz.addEventListener('dragleave', () => batchDz.classList.remove('over'));
 batchDz.addEventListener('drop', e => { e.preventDefault(); batchDz.classList.remove('over'); addBatchFiles(e.dataTransfer.files); });
@@ -1265,7 +2028,7 @@ document.getElementById('btnBatchRun').addEventListener('click', async () => {
   for (let i = 0; i < total; i++) {
     const item = batchFiles[i]; item.status = 'running'; updateBatchUI();
     try {
-      const blob = await renderFileToBlob(item.dataUrl, settings); item.status = 'done'; item.blob = blob; batchResults.push({ name: item.name.replace(/\.[^.]+$/, '') + '_styled.png', blob });
+      const blob = await renderFileToBlob(item.dataUrl, settings); item.status = 'done'; item.blob = blob; batchResults.push({ name: item.name, blob });
     } catch(err) { item.status = 'error'; }
     updateBatchUI(); progBar.style.width = ((i + 1) / total * 100) + '%'; await new Promise(r => setTimeout(r, 30));
   }
@@ -1281,7 +2044,7 @@ document.getElementById('btnBatchDownload').addEventListener('click', async () =
     for (const r of batchResults) { const a = document.createElement('a'); a.href = URL.createObjectURL(r.blob); a.download = r.name; a.click(); await new Promise(res => setTimeout(res, 200)); }
   }
 });
-renderPresetList(); rerenderToggles(); updateParamDisplay(); updateParamVisibility(); renderSavedList();
+renderPresetList(); rerenderToggles(); updateParamDisplay(); updateParamVisibility(); renderSavedList(); renderElemList();
 </script>
 </body>
 </html>
