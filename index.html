@@ -301,18 +301,37 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
 .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
 .btn-outline:hover { background: var(--ink); color: var(--paper); }
 .canvas-area {
-  padding: 28px 32px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  align-items: stretch;
+  gap: 16px;
   background:
     repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(42,33,24,0.04) 27px, rgba(42,33,24,0.04) 28px),
     repeating-linear-gradient(90deg, transparent, transparent 27px, rgba(42,33,24,0.04) 27px, rgba(42,33,24,0.04) 28px);
 }
+/* 上传后依然可把图片拖入整个右侧工作区来替换。 */
+.canvas-area { position: relative; }
+.canvas-area.drag-replace::after {
+  content: '松开鼠标以替换图片';
+  position: absolute;
+  inset: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--rust);
+  background: rgba(240, 235, 224, 0.88);
+  color: var(--rust);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
 .dropzone {
   width: 100%;
-  max-width: 680px;
+  max-width: none;
   min-height: 280px;
   border: 2px dashed var(--border);
   display: flex;
@@ -348,11 +367,12 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 1080px;
+  max-width: none;
+  min-width: 0;
 }
 .result-wrap.show { display: flex; }
-.compare-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.cv-panel { display: flex; flex-direction: column; gap: 8px; }
+.compare-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; width: 100%; align-items: start; }
+.cv-panel { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .cv-label {
   font-family: 'Space Mono', monospace;
   font-size: 0.58rem;
@@ -364,17 +384,23 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.4); }
 }
 .cv-label .pip { display: inline-block; width: 8px; height: 8px; border: 1px solid currentColor; }
 .cv-box {
-  border: 1px solid var(--border);
-  background: var(--ink);
+  /* 无底色，图片在各自预览列中自适应居中 */
+  border: none;
+  background: transparent;
   position: relative;
   overflow: hidden;
   line-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
 }
 .cv-box canvas {
   display: block;
-  width: 100%;
+  width: auto;
   height: auto;
-  max-height: 540px;
+  max-width: 100%;
+  max-height: calc(100vh - 178px);
   object-fit: contain;
   image-rendering: auto;
 }
@@ -682,6 +708,7 @@ input[type=file] { display: none; }
   .layout { grid-template-columns: 1fr; }
   .sidebar { min-height: auto; }
   .compare-row { grid-template-columns: 1fr; }
+  .cv-box canvas { max-height: 75vh; }
 }
 </style>
 </head>
@@ -1938,6 +1965,36 @@ document.getElementById('btnExport').addEventListener('click', () => {
     document.getElementById('sizeInfo').textContent =
       `${originalImg ? originalImg.width : outCv.width}×${originalImg ? originalImg.height : outCv.height} · 导出 ${outCv.width}×${outCv.height} · ${sizeMB}MB`;
   }, 'image/jpeg', 0.92);
+});
+// 右侧工作区全域拖放：上传后隐藏的 dropzone 不再限制换图操作。
+const canvasArea = document.querySelector('.canvas-area');
+function hasDraggedFiles(event) {
+  return Array.from(event.dataTransfer?.types || []).includes('Files');
+}
+canvasArea.addEventListener('dragenter', event => {
+  if (!hasDraggedFiles(event)) return;
+  event.preventDefault();
+  canvasArea.classList.add('drag-replace');
+});
+canvasArea.addEventListener('dragover', event => {
+  if (!hasDraggedFiles(event)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'copy';
+  canvasArea.classList.add('drag-replace');
+});
+canvasArea.addEventListener('dragleave', event => {
+  const bounds = canvasArea.getBoundingClientRect();
+  if (event.clientX <= bounds.left || event.clientX >= bounds.right ||
+      event.clientY <= bounds.top || event.clientY >= bounds.bottom) {
+    canvasArea.classList.remove('drag-replace');
+  }
+});
+canvasArea.addEventListener('drop', event => {
+  event.preventDefault();
+  event.stopPropagation();
+  canvasArea.classList.remove('drag-replace');
+  const file = Array.from(event.dataTransfer?.files || []).find(f => f.type.startsWith('image/'));
+  if (file) loadImg(file);
 });
 const dz = document.getElementById('dz');
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
